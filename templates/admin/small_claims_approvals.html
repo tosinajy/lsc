@@ -1,0 +1,111 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Small Claims Approvals</h2>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin_small_claims_approvals') }}" class="row g-2">
+            <div class="col-auto flex-grow-1">
+                <input type="text" name="search" class="form-control" placeholder="Search by state..." value="{{ search }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-secondary"><i class="fas fa-search"></i> Search</button>
+            </div>
+            {% if search %}
+            <div class="col-auto">
+                <a href="{{ url_for('admin_small_claims_approvals') }}" class="btn btn-outline-danger">Clear</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">Action</th>
+                    <th>State</th>
+                    <th>Proposed Values</th>
+                    <th>Submitted By</th>
+                    <th class="text-end pe-4">Decision</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in approvals %}
+                <tr>
+                    <td class="ps-4">
+                        {% if item.action_type == 'INSERT' %}
+                            <span class="badge bg-success">Create</span>
+                        {% elif item.action_type == 'UPDATE' %}
+                            <span class="badge bg-primary">Update</span>
+                        {% elif item.action_type == 'DELETE' %}
+                            <span class="badge bg-danger">Delete</span>
+                        {% endif %}
+                    </td>
+                    <td class="fw-bold">{{ item.state_name }}</td>
+                    <td>
+                        {% if item.action_type == 'DELETE' %}
+                            <em class="text-muted">Request to delete entire record</em>
+                        {% else %}
+                            <div class="small">
+                                <strong>Cap:</strong> ${{ "{:,.2f}".format(item.small_claims_cap) }}<br>
+                                <strong>Info:</strong> {{ item.small_claims_info|truncate(50) }}
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted">
+                        <div>{{ item.submitted_by }}</div>
+                        <div>{{ item.submitted_dt }}</div>
+                    </td>
+                    <td class="text-end pe-4">
+                        {% if current_user.can('approvals', 'update') %}
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('admin_small_claims_approve', approval_id=item.id) }}" class="btn btn-success" onclick="return confirm('Are you sure you want to APPROVE this change? It will go live immediately.')">
+                                <i class="fas fa-check"></i> Approve
+                            </a>
+                            <a href="{{ url_for('admin_small_claims_reject', approval_id=item.id) }}" class="btn btn-danger" onclick="return confirm('Reject this change?')">
+                                <i class="fas fa-times"></i> Reject
+                            </a>
+                        </div>
+                        {% else %}
+                        <span class="badge bg-secondary">Read Only</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">No pending approvals found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="card-footer bg-white py-3 d-flex justify-content-between align-items-center">
+        <span class="text-muted small">Page {{ page }} of {{ total_pages }}</span>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item {{ 'disabled' if page == 1 else '' }}">
+                    <a class="page-link" href="{{ url_for('admin_small_claims_approvals', page=page-1, search=search) }}">Previous</a>
+                </li>
+                {% for p in range(1, total_pages + 1) %}
+                <li class="page-item {{ 'active' if p == page else '' }}">
+                    <a class="page-link" href="{{ url_for('admin_small_claims_approvals', page=p, search=search) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {{ 'disabled' if page == total_pages else '' }}">
+                    <a class="page-link" href="{{ url_for('admin_small_claims_approvals', page=page+1, search=search) }}">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

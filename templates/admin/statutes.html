@@ -1,0 +1,123 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Statutes</h2>
+    {% if current_user.can('statutes', 'create') %}
+    <a href="{{ url_for('admin_statute_add') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add Statute
+    </a>
+    {% endif %}
+</div>
+
+<!-- Filter Bar -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin_statutes') }}" class="row g-3 align-items-center">
+            <div class="col-md-3">
+                <label class="visually-hidden">Filter by State</label>
+                <select name="state_filter" class="form-select">
+                    <option value="">All States</option>
+                    {% for s in all_states %}
+                    <option value="{{ s.id }}" {% if state_filter|string == s.id|string %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="visually-hidden">Filter by Issue</label>
+                <select name="issue_filter" class="form-select">
+                    <option value="">All Issues</option>
+                    {% for i in all_issues %}
+                    <option value="{{ i.id }}" {% if issue_filter|string == i.id|string %}selected{% endif %}>{{ i.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="visually-hidden">Search</label>
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="Search keywords..." value="{{ search }}">
+                    <button type="submit" class="btn btn-outline-secondary"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+            <div class="col-md-2 text-end">
+                {% if search or state_filter or issue_filter %}
+                <a href="{{ url_for('admin_statutes') }}" class="btn btn-outline-danger w-100">Clear Filters</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4 py-3">State</th>
+                    <th class="py-3">Issue Category</th>
+                    <th class="py-3">Time Limit</th>
+                    <th class="py-3">Last Updated</th>
+                    <th class="text-end pe-4 py-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for statute in statutes %}
+                <tr>
+                    <td class="ps-4 fw-bold">{{ statute.state_name }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ statute.issue_name }}</span></td>
+                    <td class="text-primary fw-bold">
+                        {% if statute.time_limit_type == 'range' %}
+                            {{ statute.time_limit_min }} - {{ statute.time_limit_max }} {{ statute.duration|title }}
+                        {% else %}
+                            {{ statute.time_limit_min }} {{ statute.duration|title }}
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted">
+                        <div>{{ statute.updated_dt.strftime('%Y-%m-%d') }}</div>
+                        <div>by {{ statute.updated_by }}</div>
+                    </td>
+                    <td class="text-end pe-4">
+                        {% if current_user.can('statutes', 'update') %}
+                        <a href="{{ url_for('admin_statute_edit', statute_id=statute.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        {% endif %}
+                        {% if current_user.can('statutes', 'delete') %}
+                        <a href="{{ url_for('admin_statute_delete', statute_id=statute.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">No statutes found matching your criteria.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="card-footer bg-white py-3 d-flex justify-content-between align-items-center">
+        <span class="text-muted">Page {{ page }} of {{ total_pages }}</span>
+        <nav>
+            <ul class="pagination mb-0">
+                <li class="page-item {{ 'disabled' if page == 1 else '' }}">
+                    <a class="page-link" href="{{ url_for('admin_statutes', page=page-1, search=search, state_filter=state_filter, issue_filter=issue_filter) }}">Previous</a>
+                </li>
+                {% for p in range(1, total_pages + 1) %}
+                <li class="page-item {{ 'active' if p == page else '' }}">
+                    <a class="page-link" href="{{ url_for('admin_statutes', page=p, search=search, state_filter=state_filter, issue_filter=issue_filter) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {{ 'disabled' if page == total_pages else '' }}">
+                    <a class="page-link" href="{{ url_for('admin_statutes', page=page+1, search=search, state_filter=state_filter, issue_filter=issue_filter) }}">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -21,11 +21,9 @@
                 </div>
                 <div class="col-md-5">
                     <label for="issueSelect" class="form-label fw-bold text-start d-block">Legal Issue</label>
-                    <select class="form-select" id="issueSelect" required>
-                        <option value="" selected disabled>Select Issue...</option>
-                        {% for issue in issues %}
-                        <option value="{{ issue.slug }}">{{ issue.name }}</option>
-                        {% endfor %}
+                    <!-- Field Disabled by Default -->
+                    <select class="form-select" id="issueSelect" required disabled>
+                        <option value="" selected disabled>Select State first...</option>
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
@@ -46,9 +44,50 @@
 </div>
 
 <script>
+    // DOM Elements
+    const stateSelect = document.getElementById('stateSelect');
+    const issueSelect = document.getElementById('issueSelect');
+
+    // Event Listener for State Change
+    stateSelect.addEventListener('change', function() {
+        const stateSlug = this.value;
+        
+        // Reset Issue Select
+        issueSelect.innerHTML = '<option value="" selected disabled>Loading...</option>';
+        issueSelect.disabled = true;
+
+        if (stateSlug) {
+            // Fetch issues via API
+            fetch(`/api/issues/${stateSlug}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Clear loading message
+                    issueSelect.innerHTML = '<option value="" selected disabled>Select Issue...</option>';
+                    
+                    if (data.length > 0) {
+                        // Populate options
+                        data.forEach(issue => {
+                            const option = document.createElement('option');
+                            option.value = issue.slug;
+                            option.textContent = issue.name;
+                            issueSelect.appendChild(option);
+                        });
+                        // Enable field
+                        issueSelect.disabled = false;
+                    } else {
+                        issueSelect.innerHTML = '<option value="" disabled>No issues found</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading issues:', error);
+                    issueSelect.innerHTML = '<option value="" disabled>Error loading data</option>';
+                });
+        }
+    });
+
     function performSearch() {
-        const state = document.getElementById('stateSelect').value;
-        const issue = document.getElementById('issueSelect').value;
+        const state = stateSelect.value;
+        const issue = issueSelect.value;
         if(state && issue) {
             window.location.href = `/limitations/${state}/${issue}`;
         } else {

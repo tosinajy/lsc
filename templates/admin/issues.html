@@ -1,0 +1,97 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Issue Categories</h2>
+    {% if current_user.can('issues', 'create') %}
+    <a href="{{ url_for('admin_issue_add') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add New Issue
+    </a>
+    {% endif %}
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin_issues') }}" class="row g-2">
+            <div class="col-auto flex-grow-1">
+                <input type="text" name="search" class="form-control" placeholder="Search issues..." value="{{ search }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-outline-secondary"><i class="fas fa-search"></i> Search</button>
+            </div>
+            {% if search %}
+            <div class="col-auto">
+                <a href="{{ url_for('admin_issues') }}" class="btn btn-outline-danger">Clear</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4">Name</th>
+                    <th>Slug</th>
+                    <th>Description</th>
+                    <th>Last Updated</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for issue in issues %}
+                <tr>
+                    <td class="ps-4 fw-bold">{{ issue.name }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ issue.slug }}</span></td>
+                    <td class="text-muted small text-truncate" style="max-width: 250px;">{{ issue.description }}</td>
+                    <td class="small">
+                        <div>{{ issue.updated_dt }}</div>
+                        <div class="text-muted">by {{ issue.updated_by }}</div>
+                    </td>
+                    <td class="text-end pe-4">
+                        {% if current_user.can('issues', 'update') %}
+                        <a href="{{ url_for('admin_issue_edit', issue_id=issue.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        {% endif %}
+                        {% if current_user.can('issues', 'delete') %}
+                        <a href="{{ url_for('admin_issue_delete', issue_id=issue.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure? This might break existing statutes linked to this issue.')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">No issues found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+        <span class="text-muted small">Page {{ page }} of {{ total_pages }}</span>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item {{ 'disabled' if page == 1 else '' }}">
+                    <a class="page-link" href="{{ url_for('admin_issues', page=page-1, search=search) }}">Previous</a>
+                </li>
+                {% for p in range(1, total_pages + 1) %}
+                <li class="page-item {{ 'active' if p == page else '' }}">
+                    <a class="page-link" href="{{ url_for('admin_issues', page=p, search=search) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {{ 'disabled' if page == total_pages else '' }}">
+                    <a class="page-link" href="{{ url_for('admin_issues', page=page+1, search=search) }}">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

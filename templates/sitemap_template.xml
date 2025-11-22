@@ -8,7 +8,7 @@
   {% for url in urls %}
   <url>
     <loc>{{ base_url }}/limitations/{{ url.state_slug }}/{{ url.issue_slug }}</loc>
-    <lastmod>{{ url.last_updated.strftime('%Y-%m-%d') }}</lastmod>
+    <lastmod>{{ url.updated_dt.strftime('%Y-%m-%d') }}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

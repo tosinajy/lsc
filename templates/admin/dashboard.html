@@ -1,0 +1,45 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<h2 class="fw-bold mb-4">Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Welcome back!</h5>
+                <p class="card-text fs-4">{{ user.username }}</p>
+                <span class="badge bg-light text-primary">{{ user.role_name }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <h5 class="card-title text-muted">System Status</h5>
+                <p class="card-text text-success fw-bold"><i class="fas fa-check-circle"></i> Operational</p>
+                <p class="small text-muted mb-0">Server Time: {{ now }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4 border-0 shadow-sm">
+    <div class="card-header bg-white fw-bold">Quick Actions</div>
+    <div class="card-body">
+        <div class="d-flex gap-3">
+            {% if user.can('users', 'create') %}
+            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary">
+                <i class="fas fa-user-plus"></i> Manage Users
+            </a>
+            {% endif %}
+            {% if user.can('roles', 'update') %}
+            <a href="{{ url_for('admin_roles') }}" class="btn btn-outline-dark">
+                <i class="fas fa-shield-alt"></i> Manage Roles
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

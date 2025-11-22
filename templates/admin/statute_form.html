@@ -1,0 +1,152 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url_for('admin_statutes') }}" class="btn btn-outline-secondary me-3">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <h2 class="mb-0">{{ action }} Statute</h2>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-5">
+                <form method="POST">
+                    <h5 class="text-primary border-bottom pb-2 mb-4">Core Information</h5>
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="state_id" class="form-label fw-bold">State <span class="text-danger">*</span></label>
+                            <select class="form-select" id="state_id" name="state_id" required {% if action == 'Edit' %}disabled{% endif %}>
+                                <option value="" selected disabled>Select State...</option>
+                                {% for state in states %}
+                                <option value="{{ state.id }}" {% if statute and statute.state_id == state.id %}selected{% endif %}>
+                                    {{ state.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if action == 'Edit' %}
+                            <input type="hidden" name="state_id" value="{{ statute.state_id }}">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="issue_id" class="form-label fw-bold">Issue Category <span class="text-danger">*</span></label>
+                            <select class="form-select" id="issue_id" name="issue_id" required>
+                                <option value="" selected disabled>Select Issue...</option>
+                                {% for issue in issues %}
+                                <option value="{{ issue.id }}" {% if statute and statute.issue_id == issue.id %}selected{% endif %}>
+                                    {{ issue.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="issue_info" class="form-label fw-bold">Issue Definition / Info</label>
+                        <textarea class="form-control" id="issue_info" name="issue_info" rows="2">{{ statute.issue_info if statute else '' }}</textarea>
+                        <div class="form-text">A brief explanation of this specific legal issue in this state context.</div>
+                    </div>
+
+                    <h5 class="text-primary border-bottom pb-2 mb-4 mt-5">Time Limitations</h5>
+
+                    <div class="row g-3 mb-4 p-3 bg-light rounded border">
+                        <div class="col-md-3">
+                            <label for="time_limit_type" class="form-label fw-bold">Limit Type</label>
+                            <select class="form-select" id="time_limit_type" name="time_limit_type" onchange="toggleTimeFields()">
+                                <option value="exact" {% if not statute or statute.time_limit_type == 'exact' %}selected{% endif %}>Exact</option>
+                                <option value="range" {% if statute and statute.time_limit_type == 'range' %}selected{% endif %}>Range</option>
+                                <option value="conditional" {% if statute and statute.time_limit_type == 'conditional' %}selected{% endif %}>Conditional</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label for="time_limit_max" class="form-label fw-bold" id="lbl_max">Time Limit</label>
+                            <input type="number" class="form-control" id="time_limit_max" name="time_limit_max" value="{{ statute.time_limit_max if statute else '' }}" required>
+                        </div>
+
+                        <div class="col-md-3" id="div_min" style="display:none;">
+                            <label for="time_limit_min" class="form-label fw-bold">Minimum</label>
+                            <input type="number" class="form-control" id="time_limit_min" name="time_limit_min" value="{{ statute.time_limit_min if statute else '' }}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label for="duration" class="form-label fw-bold">Duration Unit</label>
+                            <select class="form-select" id="duration" name="duration">
+                                <option value="years" {% if not statute or statute.duration == 'years' %}selected{% endif %}>Years</option>
+                                <option value="months" {% if statute and statute.duration == 'months' %}selected{% endif %}>Months</option>
+                                <option value="days" {% if statute and statute.duration == 'days' %}selected{% endif %}>Days</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="details" class="form-label fw-bold">Detailed Explanation</label>
+                        <textarea class="form-control" id="details" name="details" rows="3">{{ statute.details if statute else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="code_reference" class="form-label fw-bold">Legal Code Reference</label>
+                        <input type="text" class="form-control" id="code_reference" name="code_reference" value="{{ statute.code_reference if statute else '' }}">
+                        <div class="form-text">e.g., Tex. Civ. Prac. & Rem. Code § 16.003</div>
+                    </div>
+
+                    <h5 class="text-primary border-bottom pb-2 mb-4 mt-5">Sources & Context</h5>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="official_source_url" class="form-label fw-bold">Official Source URL</label>
+                            <input type="text" class="form-control" id="official_source_url" name="official_source_url" value="{{ statute.official_source_url if statute else '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="other_source_url" class="form-label fw-bold">Other / Explainer URL</label>
+                            <input type="text" class="form-control" id="other_source_url" name="other_source_url" value="{{ statute.other_source_url if statute else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="conditions_exceptions" class="form-label fw-bold">Conditions & Exceptions</label>
+                            <textarea class="form-control" id="conditions_exceptions" name="conditions_exceptions" rows="4">{{ statute.conditions_exceptions if statute else '' }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="examples" class="form-label fw-bold">Examples</label>
+                            <textarea class="form-control" id="examples" name="examples" rows="4">{{ statute.examples if statute else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-5">
+                        <a href="{{ url_for('admin_statutes') }}" class="btn btn-link text-decoration-none me-3">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-5">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleTimeFields() {
+        const type = document.getElementById('time_limit_type').value;
+        const minDiv = document.getElementById('div_min');
+        const minInput = document.getElementById('time_limit_min');
+        const maxLabel = document.getElementById('lbl_max');
+
+        if (type === 'exact') {
+            // Show Only Max (as "Time Limit"), Hide Min
+            minDiv.style.display = 'none';
+            minInput.required = false; 
+            maxLabel.textContent = 'Time Limit';
+        } else {
+            // Show Min and Max
+            minDiv.style.display = 'block';
+            minInput.required = true;
+            maxLabel.textContent = 'Maximum';
+        }
+    }
+
+    // Init on load
+    document.addEventListener('DOMContentLoaded', toggleTimeFields);
+</script>
+{% endblock %}
