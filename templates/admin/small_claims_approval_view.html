@@ -1,0 +1,116 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url_for('admin_small_claims_approvals') }}" class="btn btn-outline-secondary me-3">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <h2 class="mb-0">Review Small Claims Request</h2>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <small class="text-muted fw-bold text-uppercase">Action Type</small>
+                        <div class="mt-1">
+                            {% if approval.action_type == 'INSERT' %}
+                                <span class="badge bg-success fs-6">Create New</span>
+                            {% elif approval.action_type == 'UPDATE' %}
+                                <span class="badge bg-primary fs-6">Update</span>
+                            {% elif approval.action_type == 'DELETE' %}
+                                <span class="badge bg-danger fs-6">Delete</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted fw-bold text-uppercase">State</small>
+                        <div class="fs-5 fw-bold mt-1">{{ approval.state_name }}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted fw-bold text-uppercase">Submitted By</small>
+                        <div class="mt-1">{{ approval.submitted_by }}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted fw-bold text-uppercase">Date</small>
+                        <div class="mt-1">{{ approval.submitted_dt }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-light fw-bold">
+                {% if approval.action_type == 'UPDATE' %}
+                    Comparison: Current vs Proposed
+                {% elif approval.action_type == 'DELETE' %}
+                    Record Marked for Deletion
+                {% else %}
+                    Proposed New Record
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 20%;">Field</th>
+                            {% if approval.action_type == 'UPDATE' %}
+                                <th style="width: 40%;">Current Value</th>
+                                <th style="width: 40%;">Proposed Change</th>
+                            {% else %}
+                                <th>Value</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-bold bg-light">Cap Amount</td>
+                            {% if approval.action_type == 'UPDATE' %}
+                                <td>${{ "{:,.2f}".format(current_record.small_claims_cap) }}</td>
+                                <td class="{{ 'bg-warning bg-opacity-10' if current_record.small_claims_cap != approval.small_claims_cap else '' }}">
+                                    ${{ "{:,.2f}".format(approval.small_claims_cap) }}
+                                </td>
+                            {% else %}
+                                <td>
+                                    {% if approval.small_claims_cap %}
+                                        ${{ "{:,.2f}".format(approval.small_claims_cap) }}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        </tr>
+                        <tr>
+                            <td class="fw-bold bg-light">Court Info</td>
+                            {% if approval.action_type == 'UPDATE' %}
+                                <td class="text-muted">{{ current_record.small_claims_info }}</td>
+                                <td class="{{ 'bg-warning bg-opacity-10' if current_record.small_claims_info != approval.small_claims_info else '' }}">
+                                    {{ approval.small_claims_info }}
+                                </td>
+                            {% else %}
+                                <td>{{ approval.small_claims_info }}</td>
+                            {% endif %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card-footer bg-white p-4 text-end">
+                {% if current_user.can('approvals', 'update') %}
+                    <a href="{{ url_for('admin_small_claims_reject', approval_id=approval.id) }}" class="btn btn-danger me-2" onclick="return confirm('Reject this request?')">
+                        <i class="fas fa-times me-1"></i> Reject Request
+                    </a>
+                    <a href="{{ url_for('admin_small_claims_approve', approval_id=approval.id) }}" class="btn btn-success" onclick="return confirm('Approve this request? Changes will go live immediately.')">
+                        <i class="fas fa-check me-1"></i> Approve Request
+                    </a>
+                {% else %}
+                    <span class="text-muted small me-2"><i class="fas fa-lock"></i> Read Only Access</span>
+                    <button class="btn btn-success" disabled>Approve</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS small_claims (
     UNIQUE KEY unique_state_claim (state_id)
 );
 
--- NEW: Small Claims Approvals Queue
+-- Small Claims Approvals Queue
 CREATE TABLE IF NOT EXISTS small_claims_approvals (
     id INT AUTO_INCREMENT PRIMARY KEY,
     claim_id INT DEFAULT NULL, -- Link to existing record (NULL for new creates)
@@ -68,6 +68,42 @@ CREATE TABLE IF NOT EXISTS statutes (
     FOREIGN KEY (state_id) REFERENCES states(id),
     FOREIGN KEY (issue_id) REFERENCES issues(id),
     UNIQUE KEY unique_statute (state_id, issue_id)
+);
+
+-- Statutes Approvals Queue
+CREATE TABLE IF NOT EXISTS statute_approvals (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    statute_id INT DEFAULT NULL, -- Link to existing record
+    state_id INT NOT NULL,
+    issue_id INT NOT NULL,
+    duration VARCHAR(10) NOT NULL DEFAULT 'years',
+    time_limit_type VARCHAR(20) DEFAULT 'exact',
+    time_limit_min INT,
+    time_limit_max INT,
+    details TEXT,
+    issue_info TEXT,
+    conditions_exceptions TEXT,
+    examples TEXT,
+    code_reference VARCHAR(255),
+    official_source_url TEXT,
+    other_source_url TEXT,
+    action_type VARCHAR(10) NOT NULL, -- 'INSERT', 'UPDATE', 'DELETE'
+    status VARCHAR(20) DEFAULT 'PENDING', -- 'PENDING', 'APPROVED', 'REJECTED'
+    submitted_by VARCHAR(50),
+    submitted_dt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (statute_id) REFERENCES statutes(id) ON DELETE SET NULL,
+    FOREIGN KEY (state_id) REFERENCES states(id),
+    FOREIGN KEY (issue_id) REFERENCES issues(id)
+);
+
+-- NEW: Login History Logs
+CREATE TABLE IF NOT EXISTS login_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username_attempted VARCHAR(50),
+    status VARCHAR(20) NOT NULL, -- 'SUCCESS', 'FAILURE'
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(255),
+    login_dt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- NEW AUTHENTICATION TABLES --
@@ -131,10 +167,10 @@ INSERT INTO statutes (state_id, issue_id, duration, time_limit_type, time_limit_
 ON DUPLICATE KEY UPDATE details=details;
 
 -- 5. Insert Roles
--- Updated permissions to include 'approvals'
+-- Updated permissions to include 'approvals' and 'logs'
 INSERT INTO roles (name, slug, permissions) VALUES
-('Administrator', 'admin', '{"users": {"create": 1, "read": 1, "update": 1, "delete": 1}, "roles": {"create": 1, "read": 1, "update": 1, "delete": 1}, "issues": {"create": 1, "read": 1, "update": 1, "delete": 1}, "small_claims": {"create": 1, "read": 1, "update": 1, "delete": 1}, "statutes": {"create": 1, "read": 1, "update": 1, "delete": 1}, "approvals": {"create": 1, "read": 1, "update": 1, "delete": 1}}'),
-('Editor', 'editor', '{"users": {"create": 0, "read": 1, "update": 0, "delete": 0}, "roles": {"create": 0, "read": 1, "update": 0, "delete": 0}, "issues": {"create": 1, "read": 1, "update": 1, "delete": 0}, "small_claims": {"create": 1, "read": 1, "update": 1, "delete": 0}, "statutes": {"create": 1, "read": 1, "update": 1, "delete": 0}, "approvals": {"create": 0, "read": 0, "update": 0, "delete": 0}}')
+('Administrator', 'admin', '{"users": {"create": 1, "read": 1, "update": 1, "delete": 1}, "roles": {"create": 1, "read": 1, "update": 1, "delete": 1}, "issues": {"create": 1, "read": 1, "update": 1, "delete": 1}, "small_claims": {"create": 1, "read": 1, "update": 1, "delete": 1}, "statutes": {"create": 1, "read": 1, "update": 1, "delete": 1}, "approvals": {"create": 1, "read": 1, "update": 1, "delete": 1}, "logs": {"read": 1}}'),
+('Editor', 'editor', '{"users": {"create": 0, "read": 1, "update": 0, "delete": 0}, "roles": {"create": 0, "read": 1, "update": 0, "delete": 0}, "issues": {"create": 1, "read": 1, "update": 1, "delete": 0}, "small_claims": {"create": 1, "read": 1, "update": 1, "delete": 0}, "statutes": {"create": 1, "read": 1, "update": 1, "delete": 0}, "approvals": {"create": 0, "read": 0, "update": 0, "delete": 0}, "logs": {"read": 0}}')
 ON DUPLICATE KEY UPDATE permissions=permissions;
 
 -- 6. Insert Users

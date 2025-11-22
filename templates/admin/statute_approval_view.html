@@ -1,0 +1,147 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-12">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url_for('admin_statutes_approvals') }}" class="btn btn-outline-secondary me-3">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <h2 class="mb-0">Review Statute Change</h2>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <small class="text-muted fw-bold text-uppercase">Action Type</small>
+                        <div class="mt-1">
+                            {% if approval.action_type == 'INSERT' %}
+                                <span class="badge bg-success fs-6">Create New</span>
+                            {% elif approval.action_type == 'UPDATE' %}
+                                <span class="badge bg-primary fs-6">Update</span>
+                            {% elif approval.action_type == 'DELETE' %}
+                                <span class="badge bg-danger fs-6">Delete</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted fw-bold text-uppercase">State</small>
+                        <div class="fs-5 fw-bold mt-1">{{ approval.state_name }}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted fw-bold text-uppercase">Issue</small>
+                        <div class="fs-5 fw-bold mt-1">{{ approval.issue_name }}</div>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-muted fw-bold text-uppercase">Submitted By</small>
+                        <div class="mt-1">{{ approval.submitted_by }}</div>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-muted fw-bold text-uppercase">Date</small>
+                        <div class="mt-1">{{ approval.submitted_dt }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-light fw-bold">
+                {% if approval.action_type == 'UPDATE' %}
+                    Comparison: Current vs Proposed
+                {% elif approval.action_type == 'DELETE' %}
+                    Record Marked for Deletion
+                {% else %}
+                    Proposed New Record
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 15%;">Field</th>
+                            {% if approval.action_type == 'UPDATE' %}
+                                <th style="width: 42%;">Current Value</th>
+                                <th style="width: 43%;">Proposed Change</th>
+                            {% else %}
+                                <th>Value</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% macro render_row(label, field_key, is_text=False) %}
+                            <tr>
+                                <td class="fw-bold bg-light">{{ label }}</td>
+                                {% if approval.action_type == 'UPDATE' %}
+                                    <td class="{{ 'text-muted' if is_text else '' }}">
+                                        {{ current_record[field_key] or 'N/A' }}
+                                    </td>
+                                    <td class="{{ 'bg-warning bg-opacity-10' if current_record[field_key] != approval[field_key] else '' }}">
+                                        {{ approval[field_key] or 'N/A' }}
+                                    </td>
+                                {% else %}
+                                    <td>{{ approval[field_key] or 'N/A' }}</td>
+                                {% endif %}
+                            </tr>
+                        {% endmacro %}
+
+                        <tr>
+                            <td class="fw-bold bg-light">Time Limit</td>
+                            {% if approval.action_type == 'UPDATE' %}
+                                <td>
+                                    {% if current_record.time_limit_type == 'range' %}
+                                        {{ current_record.time_limit_min }}-{{ current_record.time_limit_max }}
+                                    {% else %}
+                                        {{ current_record.time_limit_min }}
+                                    {% endif %}
+                                    {{ current_record.duration|title }}
+                                </td>
+                                <td class="{{ 'bg-warning bg-opacity-10' if (current_record.time_limit_min != approval.time_limit_min or current_record.time_limit_max != approval.time_limit_max or current_record.duration != approval.duration) else '' }}">
+                                    {% if approval.time_limit_type == 'range' %}
+                                        {{ approval.time_limit_min }}-{{ approval.time_limit_max }}
+                                    {% else %}
+                                        {{ approval.time_limit_min }}
+                                    {% endif %}
+                                    {{ approval.duration|title }}
+                                </td>
+                            {% else %}
+                                <td>
+                                    {% if approval.time_limit_type == 'range' %}
+                                        {{ approval.time_limit_min }}-{{ approval.time_limit_max }}
+                                    {% else %}
+                                        {{ approval.time_limit_min }}
+                                    {% endif %}
+                                    {{ approval.duration|title }}
+                                </td>
+                            {% endif %}
+                        </tr>
+
+                        {{ render_row('Issue Info', 'issue_info') }}
+                        {{ render_row('Detailed Explanation', 'details', True) }}
+                        {{ render_row('Conditions & Exceptions', 'conditions_exceptions', True) }}
+                        {{ render_row('Examples', 'examples', True) }}
+                        {{ render_row('Code Reference', 'code_reference') }}
+                        {{ render_row('Official Source URL', 'official_source_url') }}
+                        {{ render_row('Other Source URL', 'other_source_url') }}
+
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card-footer bg-white p-4 text-end">
+                {% if current_user.can('approvals', 'update') %}
+                    <a href="{{ url_for('admin_statute_reject', approval_id=approval.id) }}" class="btn btn-danger me-2" onclick="return confirm('Reject this request?')">
+                        <i class="fas fa-times me-1"></i> Reject Request
+                    </a>
+                    <a href="{{ url_for('admin_statute_approve', approval_id=approval.id) }}" class="btn btn-success" onclick="return confirm('Approve this request? Changes will go live immediately.')">
+                        <i class="fas fa-check me-1"></i> Approve Request
+                    </a>
+                {% else %}
+                    <span class="text-muted small me-2"><i class="fas fa-lock"></i> Read Only Access</span>
+                    <button class="btn btn-success" disabled>Approve</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

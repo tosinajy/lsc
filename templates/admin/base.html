@@ -15,7 +15,6 @@
 </head>
 <body>
     <div class="d-flex">
-        <!-- Sidebar -->
         <div class="sidebar d-flex flex-column p-3" style="width: 250px;">
             <h4 class="mb-4 text-center fw-bold">SC Admin</h4>
             <a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if request.endpoint == 'admin_dashboard' else '' }}">
@@ -27,24 +26,27 @@
             <a href="{{ url_for('admin_small_claims_approvals') }}" class="{{ 'active' if request.endpoint == 'admin_small_claims_approvals' else '' }}">
                 <i class="fas fa-check-circle me-2"></i> SC Approvals
             </a>
+            <a href="{{ url_for('admin_statutes_approvals') }}" class="{{ 'active' if request.endpoint == 'admin_statutes_approvals' else '' }}">
+                <i class="fas fa-gavel me-2"></i> Statute Approvals
+            </a>
             {% endif %}
 
             <div class="text-uppercase small fw-bold text-secondary mt-3 mb-1 px-3">Content</div>
             
             {% if current_user.can('statutes', 'read') %}
-            <a href="{{ url_for('admin_statutes') }}" class="{{ 'active' if request.endpoint and 'admin_statute' in request.endpoint else '' }}">
+            <a href="{{ url_for('admin_statutes') }}" class="{{ 'active' if request.endpoint and 'admin_statute' in request.endpoint and 'approval' not in request.endpoint else '' }}">
                 <i class="fas fa-book me-2"></i> Statutes
             </a>
             {% endif %}
             
             {% if current_user.can('issues', 'read') %}
             <a href="{{ url_for('admin_issues') }}" class="{{ 'active' if request.endpoint and 'admin_issue' in request.endpoint else '' }}">
-                <i class="fas fa-gavel me-2"></i> Issue Categories
+                <i class="fas fa-scale-balanced me-2"></i> Issue Categories
             </a>
             {% endif %}
             
             {% if current_user.can('small_claims', 'read') %}
-            <a href="{{ url_for('admin_small_claims') }}" class="{{ 'active' if request.endpoint and 'admin_small_claims' in request.endpoint else '' }}">
+            <a href="{{ url_for('admin_small_claims') }}" class="{{ 'active' if request.endpoint and 'admin_small_claims' in request.endpoint and 'approval' not in request.endpoint else '' }}">
                 <i class="fas fa-balance-scale-right me-2"></i> Small Claims
             </a>
             {% endif %}
@@ -61,6 +63,11 @@
                 <i class="fas fa-user-shield me-2"></i> Roles
             </a>
             {% endif %}
+            {% if current_user.can('logs', 'read') %}
+            <a href="{{ url_for('admin_login_logs') }}" class="{{ 'active' if request.endpoint == 'admin_login_logs' else '' }}">
+                <i class="fas fa-history me-2"></i> Login History
+            </a>
+            {% endif %}
             
             <a href="{{ url_for('index') }}" target="_blank" class="mt-auto text-warning">
                 <i class="fas fa-external-link-alt me-2"></i> View Live Site
@@ -70,7 +77,6 @@
             </a>
         </div>
 
-        <!-- Main Content -->
         <div class="flex-grow-1 content bg-light">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}

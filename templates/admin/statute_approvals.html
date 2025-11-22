@@ -2,21 +2,21 @@
 
 {% block admin_content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Small Claims Approvals</h2>
+    <h2>Statute Approvals</h2>
 </div>
 
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-body">
-        <form method="GET" action="{{ url_for('admin_small_claims_approvals') }}" class="row g-2">
+        <form method="GET" action="{{ url_for('admin_statutes_approvals') }}" class="row g-2">
             <div class="col-auto flex-grow-1">
-                <input type="text" name="search" class="form-control" placeholder="Search by state..." value="{{ search }}">
+                <input type="text" name="search" class="form-control" placeholder="Search by state or issue..." value="{{ search }}">
             </div>
             <div class="col-auto">
                 <button type="submit" class="btn btn-outline-secondary"><i class="fas fa-search"></i> Search</button>
             </div>
             {% if search %}
             <div class="col-auto">
-                <a href="{{ url_for('admin_small_claims_approvals') }}" class="btn btn-outline-danger">Clear</a>
+                <a href="{{ url_for('admin_statutes_approvals') }}" class="btn btn-outline-danger">Clear</a>
             </div>
             {% endif %}
         </form>
@@ -29,8 +29,8 @@
             <thead class="bg-light">
                 <tr>
                     <th class="ps-4">Action</th>
-                    <th>State</th>
-                    <th>Proposed Values</th>
+                    <th>State / Issue</th>
+                    <th>Proposed Limits</th>
                     <th>Submitted By</th>
                     <th class="text-end pe-4">Decision</th>
                 </tr>
@@ -47,14 +47,25 @@
                             <span class="badge bg-danger">Delete</span>
                         {% endif %}
                     </td>
-                    <td class="fw-bold">{{ item.state_name }}</td>
+                    <td class="fw-bold">
+                        <div>{{ item.state_name }}</div>
+                        <div class="small text-muted fw-normal">{{ item.issue_name }}</div>
+                    </td>
                     <td>
                         {% if item.action_type == 'DELETE' %}
                             <em class="text-muted">Request to delete entire record</em>
                         {% else %}
                             <div class="small">
-                                <strong>Cap:</strong> ${{ "{:,.2f}".format(item.small_claims_cap) }}<br>
-                                <strong>Info:</strong> {{ item.small_claims_info|truncate(50) }}
+                                <strong>
+                                    {% if item.time_limit_type == 'range' %}
+                                        {{ item.time_limit_min }} - {{ item.time_limit_max }}
+                                    {% else %}
+                                        {{ item.time_limit_min }}
+                                    {% endif %}
+                                    {{ item.duration }}
+                                </strong>
+                                <br>
+                                <span class="text-muted">{{ item.details|truncate(50) }}</span>
                             </div>
                         {% endif %}
                     </td>
@@ -63,7 +74,7 @@
                         <div>{{ item.submitted_dt }}</div>
                     </td>
                     <td class="text-end pe-4">
-                        <a href="{{ url_for('admin_small_claims_approval_view', approval_id=item.id) }}" class="btn btn-sm btn-outline-primary">
+                        <a href="{{ url_for('admin_statute_approval_view', approval_id=item.id) }}" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-eye me-1"></i> Review
                         </a>
                     </td>
@@ -83,15 +94,15 @@
         <nav>
             <ul class="pagination pagination-sm mb-0">
                 <li class="page-item {{ 'disabled' if page == 1 else '' }}">
-                    <a class="page-link" href="{{ url_for('admin_small_claims_approvals', page=page-1, search=search) }}">Previous</a>
+                    <a class="page-link" href="{{ url_for('admin_statutes_approvals', page=page-1, search=search) }}">Previous</a>
                 </li>
                 {% for p in range(1, total_pages + 1) %}
                 <li class="page-item {{ 'active' if p == page else '' }}">
-                    <a class="page-link" href="{{ url_for('admin_small_claims_approvals', page=p, search=search) }}">{{ p }}</a>
+                    <a class="page-link" href="{{ url_for('admin_statutes_approvals', page=p, search=search) }}">{{ p }}</a>
                 </li>
                 {% endfor %}
                 <li class="page-item {{ 'disabled' if page == total_pages else '' }}">
-                    <a class="page-link" href="{{ url_for('admin_small_claims_approvals', page=page+1, search=search) }}">Next</a>
+                    <a class="page-link" href="{{ url_for('admin_statutes_approvals', page=page+1, search=search) }}">Next</a>
                 </li>
             </ul>
         </nav>
