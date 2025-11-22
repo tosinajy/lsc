@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Check Statute of Limitations by State | StatuteChecker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center text-center mt-5">
+    <div class="col-md-8">
+        <h1 class="display-4 fw-bold mb-3">Can I still sue?</h1>
+        <p class="lead text-muted mb-5">Check the Statute of Limitations for civil legal issues in your state instantly.</p>
+        
+        <div class="card shadow-lg border-0 p-4">
+            <form id="searchForm" class="row g-3">
+                <div class="col-md-5">
+                    <label for="stateSelect" class="form-label fw-bold text-start d-block">State</label>
+                    <select class="form-select" id="stateSelect" required>
+                        <option value="" selected disabled>Select State...</option>
+                        {% for state in states %}
+                        <option value="{{ state.slug }}">{{ state.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label for="issueSelect" class="form-label fw-bold text-start d-block">Legal Issue</label>
+                    <select class="form-select" id="issueSelect" required>
+                        <option value="" selected disabled>Select Issue...</option>
+                        {% for issue in issues %}
+                        <option value="{{ issue.slug }}">{{ issue.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" onclick="performSearch()" class="btn btn-dark w-100 fw-bold">Check Now</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- AD PLACEHOLDER: 970x90 -->
+        <div class="ad-slot mt-5">
+            <!-- Replace with Ad Network Code -->
+            <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded" style="height: 90px; max-width: 970px; margin: 0 auto; opacity: 0.3;">
+                <small>Advertisement (970x90)</small>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function performSearch() {
+        const state = document.getElementById('stateSelect').value;
+        const issue = document.getElementById('issueSelect').value;
+        if(state && issue) {
+            window.location.href = `/limitations/${state}/${issue}`;
+        } else {
+            alert("Please select both a state and an issue.");
+        }
+    }
+</script>
+{% endblock %}
