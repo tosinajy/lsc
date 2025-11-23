@@ -1,122 +1,116 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    {% if data.time_limit_type == 'range' %}
-        {{ data.time_limit_min }}-{{ data.time_limit_max }} {{ data.duration|title }}
-    {% else %}
-        {{ data.time_limit_min }} {{ data.duration|title }}
-    {% endif %}
-    Limit: {{ data.state_name }} {{ data.issue_name }} Statute
+    {{ data.time_limit_min }} {{ data.duration|title }} Limit: {{ data.state_name }} {{ data.issue_name }}
 {% endblock %}
 
-{% block meta_desc %}In {{ data.state_name }}, the statute of limitations for {{ data.issue_name }} is generally {{ data.time_limit_min }} {{ data.duration }}. Read code reference {{ data.code_reference }}.{% endblock %}
+{% block meta_desc %}In {{ data.state_name }}, the statute of limitations for {{ data.issue_name }} is {{ data.time_limit_min }} {{ data.duration }}. Details on exceptions and discovery rules.{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body p-5">
-                <ol class="breadcrumb mb-4">
-                        <li class="breadcrumb-item"><a href="/">Home</a></li>
-                        <li class="breadcrumb-item active">{{ data.state_name }} ({{ data.state_code }})</li>
-                        {% if data.issue_group %}
-                        <li class="breadcrumb-item active">{{ data.issue_group }}</li>
-                        {% endif %}
-                        <li class="breadcrumb-item active">{{ data.issue_name }}</li>
-                    </ol>
-                </nav>
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-4 small text-uppercase fw-bold text-muted">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Home</a></li>
+                <li class="breadcrumb-item">{{ data.state_name }}</li>
+                <li class="breadcrumb-item active text-navy">{{ data.issue_name }}</li>
+            </ol>
+        </nav>
 
-                <h1 class="fw-bold mb-3">
-                    {{ data.state_name }}: {{ data.issue_name }}
-                    {% if data.issue_group %}
-                    <span class="text-muted fs-4 d-block mt-1">{{ data.issue_group }}</span>
-                    {% endif %}
-                </h1>
-                
-                {% if data.issue_info %}
-                <p class="text-muted mb-4"><i class="fas fa-info-circle me-1"></i> {{ data.issue_info }}</p>
-                {% endif %}
-                
-                <div class="alert alert-info border-0 d-flex align-items-center mb-4" role="alert">
-                    <i class="fas fa-clock fa-2x me-3"></i>
-                    <div>
-                        <h5 class="mb-0 text-uppercase small fw-bold">Statute of Limitations</h5>
-                        <span class="display-6 fw-bold">
-                            {% if data.time_limit_type == 'range' %}
-                                {{ data.time_limit_min }} - {{ data.time_limit_max }} {{ data.duration|title }}
-                            {% else %}
-                                {{ data.time_limit_min }} {{ data.duration|title }}
-                            {% endif %}
-                        </span>
+        <h1 class="fw-bold text-navy mb-4">
+            {{ data.state_name }}: {{ data.issue_name }}
+            {% if data.issue_group %}
+            <span class="fs-5 text-muted fw-normal d-block mt-1">{{ data.issue_group }}</span>
+            {% endif %}
+        </h1>
+
+        <!-- PRIMARY ANSWER HERO SECTION: ABOVE THE FOLD -->
+        <div class="statute-hero shadow-sm">
+            <div class="row align-items-center">
+                <div class="col-md-7 border-end border-secondary border-opacity-25">
+                    <p class="text-uppercase small fw-bold mb-1 opacity-75">Statute of Limitations</p>
+                    <div class="statute-number">
+                        {% if data.time_limit_type == 'range' %}
+                            {{ data.time_limit_min }}-{{ data.time_limit_max }} <span class="fs-2">{{ data.duration|title }}</span>
+                        {% else %}
+                            {{ data.time_limit_min }} <span class="fs-2">{{ data.duration|title }}</span>
+                        {% endif %}
                     </div>
                 </div>
-
-                <h5 class="fw-bold">Details</h5>
-                <p class="lead mb-4">{{ data.details }}</p>
-
-                {% if data.examples %}
-                <div class="bg-light p-3 rounded border mb-4">
-                    <h6 class="fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i>Example</h6>
-                    <p class="mb-0 fst-italic">{{ data.examples }}</p>
-                </div>
-                {% endif %}
-
-                {% if data.conditions_exceptions %}
-                <div class="mb-4">
-                    <h6 class="fw-bold text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Exceptions & Conditions</h6>
-                    <p class="small">{{ data.conditions_exceptions }}</p>
-                </div>
-                {% endif %}
-                
-                <h5 class="fw-bold">Details</h5>
-                <p class="lead mb-4">{{ data.details }}</p>
-
-                {% if data.tolling %}
-                <div class="mb-4">
-                    <h6 class="fw-bold text-primary"><i class="fas fa-pause-circle me-2"></i>Tolling & Pausing the Clock</h6>
-                    <p class="small">{{ data.tolling }}</p>
-                </div>
-                {% endif %}
-
-                {% if data.examples %}
-                <div class="bg-light p-3 rounded border mb-4">
-                    <h6 class="fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i>Example</h6>
-                    <p class="mb-0 fst-italic">{{ data.examples }}</p>
-                </div>
-                {% endif %}
-
-                <hr>
-                
-                <div class="text-muted small">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p class="mb-1"><strong>Code Reference:</strong> {{ data.code_reference }}</p>
-                            <p class="mb-0"><strong>Last Updated:</strong> {{ data.updated_dt }}</p>
-                        </div>
-                        <div class="col-md-6 text-md-end">
-                            {% if data.official_source_url %}
-                                <a href="{{ data.official_source_url }}" target="_blank" rel="nofollow" class="btn btn-sm btn-outline-primary mb-1">
-                                    <i class="fas fa-external-link-alt"></i> Official Source
-                                </a>
-                            {% endif %}
-                            {% if data.other_source_url %}
-                                <a href="{{ data.other_source_url }}" target="_blank" rel="nofollow" class="btn btn-sm btn-outline-secondary mb-1">
-                                    <i class="fas fa-book-open"></i> More Info
-                                </a>
-                            {% endif %}
-                        </div>
+                <div class="col-md-5 ps-md-4 pt-3 pt-md-0">
+                    <div class="d-flex align-items-start mb-2">
+                        <i class="fas fa-gavel mt-1 me-2 opacity-75"></i>
+                        <span class="small">{{ data.issue_info }}</span>
+                    </div>
+                    <div class="d-flex align-items-center mt-3">
+                        <span class="badge bg-white text-navy px-3 py-2 fw-bold shadow-sm">
+                            <i class="fas fa-check-circle me-1 text-success"></i> Active Law
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="alert alert-warning border-start border-warning border-4 shadow-sm">
-            <h6 class="alert-heading fw-bold"><i class="fas fa-balance-scale"></i> Legal Disclaimer</h6>
-            <ul class="mb-0 small">
-                <li>This is general information—consult a lawyer.</li>
-                <li>Special circumstances may apply.</li>
-                <li>Deadlines vary by case facts.</li>
-            </ul>
+        <!-- DETAILS GRID -->
+        <div class="row g-4 mb-5">
+            <!-- The Trigger Rule -->
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm p-4">
+                    <div class="icon-box">
+                        <i class="fas fa-hourglass-start text-dark fa-lg"></i>
+                    </div>
+                    <h5 class="fw-bold text-navy">When the Clock Starts</h5>
+                    <p class="text-muted mb-0 small">{{ data.details }}</p>
+                </div>
+            </div>
+            
+            <!-- Exceptions -->
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm p-4">
+                    <div class="icon-box" style="background-color: #fef2f2; color: #dc2626;">
+                        <i class="fas fa-exclamation-triangle fa-lg"></i>
+                    </div>
+                    <h5 class="fw-bold text-navy">Exceptions & Conditions</h5>
+                    {% if data.conditions_exceptions %}
+                        <p class="text-muted mb-0 small">{{ data.conditions_exceptions }}</p>
+                    {% else %}
+                        <p class="text-muted mb-0 small">No specific statutory exceptions listed.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ADDITIONAL CONTEXT -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold text-navy mb-3"><i class="fas fa-pause-circle me-2 text-dark"></i>Tolling (Pausing)</h5>
+                <p class="text-muted mb-4">{{ data.tolling or 'Information on tolling not available for this specific statute.' }}</p>
+                
+                {% if data.examples %}
+                <div class="bg-light p-3 rounded border-start border-4 border-warning">
+                    <h6 class="fw-bold small text-uppercase text-muted mb-2">Example Scenario</h6>
+                    <p class="mb-0 fst-italic text-dark">{{ data.examples }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <hr class="my-5 text-muted">
+        
+        <!-- FOOTER METADATA -->
+        <div class="row text-muted small">
+            <div class="col-md-8">
+                <p class="mb-1"><strong class="text-navy">Code Reference:</strong> {{ data.code_reference }}</p>
+                <p class="mb-0"><strong>Last Verification:</strong> {{ data.updated_dt.strftime('%B %d, %Y') }}</p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                {% if data.official_source_url %}
+                    <a href="{{ data.official_source_url }}" target="_blank" rel="nofollow" class="btn btn-sm btn-outline-dark mb-1">
+                        Official Source <i class="fas fa-external-link-alt ms-1"></i>
+                    </a>
+                {% endif %}
+            </div>
         </div>
 
         <div class="mt-4 text-center">
@@ -126,59 +120,87 @@
         </div>
     </div>
 
-    <div class="col-lg-4">
-        <div class="card bg-white shadow-sm border-0 sticky-top" style="top: 20px;">
-            <div class="card-header bg-primary text-white fw-bold">
-                <i class="fas fa-gavel me-2"></i> Small Claims Check
-            </div>
-            <div class="card-body">
-                <p class="small text-muted">Can you sue in Small Claims court in {{ data.state_name }}?</p>
-                
-                {% if data.small_claims_cap %}
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Claim Amount ($)</label>
-                    <input type="number" id="claimAmount" class="form-control" placeholder="e.g. 5000">
+    <!-- SIDEBAR -->
+    <div class="col-lg-4 mt-4 mt-lg-0">
+        <!-- FIX: Adjusted top value to 6rem to account for navbar height so it doesn't get covered -->
+        <div class="sticky-top" style="top: 6rem; z-index: 10;">
+            <div class="card bg-white shadow-sm border-0">
+                <div class="card-header bg-navy text-white fw-bold py-3" style="background-color: var(--primary-navy);">
+                    <i class="fas fa-balance-scale-right me-2"></i> Small Claims Check
                 </div>
-                <button onclick="checkSmallClaims({{ data.small_claims_cap }})" class="btn btn-dark w-100 mb-3">Check Eligibility</button>
-                
-                <div id="calcResult" class="d-none">
+                <div class="card-body p-4">
+                    <p class="text-slate mb-3">Can you resolve this in {{ data.state_name }} Small Claims court?</p>
+                    
+                    {% if data.small_claims_cap %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-uppercase">Your Claim Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">$</span>
+                            <input type="number" id="claimAmount" class="form-control" placeholder="e.g. 5000">
+                        </div>
                     </div>
-                
-                <hr>
-                <p class="small mb-0"><strong>Max Limit:</strong> ${{ data.small_claims_cap }}</p>
-                <p class="small text-muted">{{ data.small_claims_info }}</p>
-                {% else %}
-                <div class="alert alert-warning small">
-                    Small claims data unavailable for this state.
+                    <button onclick="checkSmallClaims({{ data.small_claims_cap }})" class="btn btn-dark w-100 mb-3">Check Eligibility</button>
+                    
+                    <div id="calcResult" class="d-none mb-3"></div>
+                    
+                    <!-- Hidden by default, shown via JS after check -->
+                    <div id="smallClaimsInfo" class="bg-light p-3 rounded small d-none">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Max Limit:</span>
+                            <span class="fw-bold">${{ "{:,.0f}".format(data.small_claims_cap) }}</span>
+                        </div>
+                        <div class="border-top my-2"></div>
+                        <span class="text-muted fst-italic">{{ data.small_claims_info }}</span>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning small border-0">
+                        Small claims data unavailable for this state.
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
+            </div>
+            
+            <!-- Disclaimer Card -->
+            <div class="card border-0 bg-light mt-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-slate"><i class="fas fa-shield-alt me-2"></i>Legal Disclaimer</h6>
+                    <p class="small text-muted mb-0">
+                        Statutes of limitations are complex and subject to change. "Discovery rules" and "Tolling" can extend deadlines. Always consult a qualified attorney in {{ data.state_name }} to confirm your specific deadline.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Report Modal -->
 <div class="modal fade" id="reportModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Report Data Issue</h5>
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold text-navy">Report Data Issue</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="reportForm">
                     <div class="mb-3">
-                        <label class="form-label">What is incorrect?</label>
+                        <label class="form-label fw-bold small">What is incorrect?</label>
                         <textarea class="form-control" id="issueDetails" rows="3" required></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Your Email (optional)</label>
+                        <label class="form-label fw-bold small">Official Source URL (Optional)</label>
+                        <input type="url" class="form-control" id="officialSource" placeholder="https://...">
+                        <div class="form-text">Link to the official state code or government site verifying the correction.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Your Email (optional)</label>
                         <input type="email" class="form-control" id="reporterEmail">
                     </div>
                     <input type="hidden" id="pageContext" value="/limitations/{{ state_slug }}/{{ issue_slug }}">
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="submitReport()">Submit Report</button>
             </div>
         </div>

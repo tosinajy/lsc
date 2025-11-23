@@ -1,4 +1,5 @@
 from flask import render_template, request, jsonify, Response, abort
+from mysql.connector import Error
 from db import get_db_connection
 
 def register(app):
@@ -50,7 +51,7 @@ def register(app):
                 sc.small_claims_cap,
                 sc.small_claims_info,
                 i.name as issue_name,
-                i.issue_group,  -- ADDED
+                i.issue_group,
                 i.description as issue_desc,
                 st.duration,
                 st.time_limit_type,
@@ -82,8 +83,29 @@ def register(app):
     @app.route('/report-issue', methods=['POST'])
     def report_issue():
         data = request.json
-        print(f"ISSUE REPORTED: {data}") 
-        return jsonify({'status': 'success', 'message': 'Report received.'})
+        details = data.get('details')
+        email = data.get('email')
+        official_source = data.get('official_source')
+        page_context = data.get('url')
+        
+        if not details:
+            return jsonify({'status': 'error', 'message': 'Details are required.'}), 400
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""
+                INSERT INTO issue_reports (details, reporter_email, official_source, page_context, created_at)
+                VALUES (%s, %s, %s, %s, NOW())
+            """, (details, email, official_source, page_context))
+            conn.commit()
+            return jsonify({'status': 'success', 'message': 'Report submitted successfully. We will review it shortly.'})
+        except Error as e:
+            print(f"Database Error: {e}")
+            return jsonify({'status': 'error', 'message': 'Failed to save report.'}), 500
+        finally:
+            cursor.close()
+            conn.close()
 
     @app.route('/sitemap.xml')
     def sitemap():

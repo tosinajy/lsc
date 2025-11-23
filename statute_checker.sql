@@ -16,6 +16,31 @@ USE `statute_checker`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `issue_reports`
+--
+
+DROP TABLE IF EXISTS `issue_reports`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `issue_reports` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `page_context` varchar(255) DEFAULT NULL,
+  `details` text NOT NULL,
+  `reporter_email` varchar(100) DEFAULT NULL,
+  `official_source` varchar(255) DEFAULT NULL,
+  `is_valid` tinyint(1) DEFAULT NULL COMMENT 'NULL=Pending, 1=Valid, 0=Invalid',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `issue_reports`
+--
+
+INSERT INTO `issue_reports` VALUES (1,'/limitations/california/personal-injury','test','aj@bbc.com','https://abc.com',1,'2025-11-22 21:02:48');
+
+--
 -- Table structure for table `issues`
 --
 
@@ -56,13 +81,14 @@ CREATE TABLE `login_logs` (
   `user_agent` varchar(255) DEFAULT NULL,
   `login_dt` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `login_logs`
 --
 
+INSERT INTO `login_logs` VALUES (1,'admin','FAILURE','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36','2025-11-22 21:00:22'),(2,'admin','SUCCESS','127.0.0.1','Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36','2025-11-22 21:01:27');
 
 --
 -- Table structure for table `roles`
@@ -278,7 +304,7 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` VALUES (1,'admin','admin@statutechecker.com','scrypt:32768:8:1$9kM5f3hS$6b8c40f4b40c45858585858585858585',1,'system','2025-11-22 19:23:07'),(2,'editor','editor@statutechecker.com','scrypt:32768:8:1$9kM5f3hS$6b8c40f4b40c45858585858585858585',2,'system','2025-11-22 19:23:07');
+INSERT INTO `users` VALUES (1,'admin','admin@statutechecker.com','scrypt:32768:8:1$smGjbkWRBcVBlm6V$2e803eb4d462fb6b8cc6c2ff58b7754b824a4670f3b939bc265a3852fd8060df08b0e30f52759a3a526bb8654ce4b726cf5ec5e2fc50c7e311d3b6ac02e3031d',1,'system_script','2025-11-22 21:00:51'),(2,'editor','editor@statutechecker.com','scrypt:32768:8:1$9kM5f3hS$6b8c40f4b40c45858585858585858585',2,'system','2025-11-22 19:23:07');
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

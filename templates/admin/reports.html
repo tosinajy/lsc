@@ -1,0 +1,117 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Issue Reports</h2>
+    <div>
+        <!-- Filter Dropdown -->
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                Filter: 
+                {% if status_filter == 'pending' %}Pending
+                {% elif status_filter == 'valid' %}Valid
+                {% elif status_filter == 'invalid' %}Invalid
+                {% else %}All Reports
+                {% endif %}
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('admin_reports', status='all') }}">All Reports</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_reports', status='pending') }}">Pending Only</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_reports', status='valid') }}">Valid Only</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_reports', status='invalid') }}">Invalid Only</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="bg-light">
+                <tr>
+                    <th class="ps-4" style="width: 15%;">Date</th>
+                    <th style="width: 10%;">Context</th>
+                    <th style="width: 35%;">Details / Source</th>
+                    <th style="width: 15%;">Reporter</th>
+                    <th style="width: 10%;">Status</th>
+                    <th class="text-end pe-4" style="width: 15%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                <tr>
+                    <td class="ps-4 small text-muted">{{ report.created_at }}</td>
+                    <td>
+                        <a href="{{ report.page_context }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-external-link-alt"></i> View Page
+                        </a>
+                    </td>
+                    <td>
+                        <div class="fw-bold">{{ report.details }}</div>
+                        {% if report.official_source %}
+                        <div class="small mt-1">
+                            <i class="fas fa-link text-muted me-1"></i>
+                            <a href="{{ report.official_source }}" target="_blank" class="text-truncate d-inline-block" style="max-width: 250px;">
+                                {{ report.official_source }}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="small text-muted">{{ report.reporter_email or 'Anonymous' }}</td>
+                    <td>
+                        {% if report.is_valid == 1 %}
+                            <span class="badge bg-success">Valid</span>
+                        {% elif report.is_valid == 0 %}
+                            <span class="badge bg-secondary">Invalid</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end pe-4">
+                        {% if current_user.can('statutes', 'update') %}
+                            {% if report.is_valid != 1 %}
+                            <a href="{{ url_for('admin_report_validate', report_id=report.id, is_valid=1) }}" class="btn btn-sm btn-outline-success me-1" title="Mark Valid">
+                                <i class="fas fa-check"></i>
+                            </a>
+                            {% endif %}
+                            
+                            {% if report.is_valid != 0 %}
+                            <a href="{{ url_for('admin_report_validate', report_id=report.id, is_valid=0) }}" class="btn btn-sm btn-outline-danger" title="Mark Invalid">
+                                <i class="fas fa-times"></i>
+                            </a>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">No reports found matching criteria.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="card-footer bg-white py-3 d-flex justify-content-between align-items-center">
+        <span class="text-muted small">Page {{ page }} of {{ total_pages }}</span>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item {{ 'disabled' if page == 1 else '' }}">
+                    <a class="page-link" href="{{ url_for('admin_reports', page=page-1, status=status_filter) }}">Previous</a>
+                </li>
+                {% for p in range(1, total_pages + 1) %}
+                <li class="page-item {{ 'active' if p == page else '' }}">
+                    <a class="page-link" href="{{ url_for('admin_reports', page=p, status=status_filter) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {{ 'disabled' if page == total_pages else '' }}">
+                    <a class="page-link" href="{{ url_for('admin_reports', page=page+1, status=status_filter) }}">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

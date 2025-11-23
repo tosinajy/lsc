@@ -487,3 +487,74 @@ def register(app):
             cursor.close()
             conn.close()
         return redirect(url_for('admin_statutes'))
+        
+    # --- ISSUE REPORTS ---
+    @app.route('/admin/reports')
+    @login_required
+    def admin_reports():
+        # Uses 'statutes' 'read' permission as proxy for viewing reports
+        if not current_user.can('statutes', 'read'):
+            flash('Access denied', 'danger')
+            return redirect(url_for('admin_dashboard'))
+            
+        page = request.args.get('page', 1, type=int)
+        status_filter = request.args.get('status', 'all') # all, pending, valid, invalid
+        
+        per_page = 20
+        offset = (page - 1) * per_page
+        
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        conditions = []
+        params = []
+        
+        if status_filter == 'pending':
+            conditions.append("is_valid IS NULL")
+        elif status_filter == 'valid':
+            conditions.append("is_valid = 1")
+        elif status_filter == 'invalid':
+            conditions.append("is_valid = 0")
+            
+        where_clause = " WHERE " + " AND ".join(conditions) if conditions else ""
+        
+        # Count
+        count_sql = f"SELECT COUNT(*) as total FROM issue_reports {where_clause}"
+        cursor.execute(count_sql, tuple(params))
+        total_records = cursor.fetchone()['total']
+        total_pages = math.ceil(total_records / per_page)
+        
+        # Fetch
+        sql = f"SELECT * FROM issue_reports {where_clause} ORDER BY created_at DESC LIMIT %s OFFSET %s"
+        params.extend([per_page, offset])
+        cursor.execute(sql, tuple(params))
+        reports = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        return render_template('admin/reports.html', reports=reports, page=page, total_pages=total_pages, status_filter=status_filter)
+
+    @app.route('/admin/reports/validate/<int:report_id>/<int:is_valid>')
+    @login_required
+    def admin_report_validate(report_id, is_valid):
+        # Uses 'statutes' 'update' permission to validate
+        if not current_user.can('statutes', 'update'):
+            flash('Access denied', 'danger')
+            return redirect(url_for('admin_reports'))
+            
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        try:
+            val = 1 if is_valid else 0
+            cursor.execute("UPDATE issue_reports SET is_valid = %s WHERE id = %s", (val, report_id))
+            conn.commit()
+            status_msg = "marked as Valid" if val else "marked as Invalid"
+            flash(f'Report {status_msg}.', 'success')
+        except Error as e:
+            flash(f'Database Error: {e}', 'danger')
+        finally:
+            cursor.close()
+            conn.close()
+            
+        return redirect(url_for('admin_reports'))

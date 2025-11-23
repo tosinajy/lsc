@@ -28,9 +28,17 @@ def from_json_filter(value):
 def inject_globals():
     return {'now': datetime.datetime.utcnow()}
 
+# --- Error Handlers ---
 @app.errorhandler(404)
 def page_not_found(e):
+    # This catches all 404 errors (invalid URLs, or manual abort(404) calls)
     return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    # It's good practice to have a generic error page for 500s as well
+    # For now, we can reuse the layout or a simple message
+    return render_template('base.html', content="<div class='text-center py-5'><h1>500</h1><p>Internal Server Error. Please try again later.</p></div>"), 500
 
 # --- Auth Setup ---
 login_manager = LoginManager()

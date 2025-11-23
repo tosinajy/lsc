@@ -1,32 +1,108 @@
+/* Import Professional Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+:root {
+    --primary-navy: #0f172a;
+    --secondary-slate: #475569;
+    --accent-blue: #2563eb;
+    --bg-light: #f8fafc;
+    --border-color: #e2e8f0;
+    --text-dark: #1e293b;
+    --success-green: #059669;
+}
+
 body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
     min-height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    color: var(--primary-navy) !important;
+    font-weight: 700;
+    font-size: 1.5rem;
+    letter-spacing: -0.5px;
+}
+
+/* Cards */
+.card {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    background: #fff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    border-color: var(--accent-blue);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-navy);
+    border-color: var(--primary-navy);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background-color: #1e293b; /* Slightly lighter navy */
+    border-color: #1e293b;
+}
+
+/* Typography Helpers */
+.text-navy { color: var(--primary-navy); }
+.text-slate { color: var(--secondary-slate); }
+.fw-bold { font-weight: 700 !important; }
+
+/* Home Page Specifics */
+.hero-section {
+    padding: 3rem 0;
+}
+
+/* Statute Page Specifics */
+.statute-hero {
+    background: var(--primary-navy);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.statute-number {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.icon-box {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background-color: #eff6ff; /* Light blue */
+    color: var(--accent-blue);
+    margin-bottom: 1rem;
 }
 
 /* Sticky Footer Fix */
 main {
-    padding-bottom: 2rem;
+    padding-bottom: 3rem;
 }
 
 .footer {
-    background-color: #f8f9fa;
-}
-
-/* Ad Slots */
-.ad-slot {
-    text-align: center;
-    margin: 1rem 0;
-    overflow: hidden;
-}
-
-/* Card Hover Effects */
-.card {
-    transition: transform 0.2s;
-}
-.card:hover {
-    border-color: #0d6efd;
-}
-
-/* Form Tweaks */
-.form-select, .form-control {
-    padding: 0.75rem;
+    background-color: #ffffff;
+    border-top: 1px solid var(--border-color);
+    padding: 2rem 0;
 }

@@ -1,71 +1,93 @@
 {% extends 'base.html' %}
 
-{% block title %}Check Statute of Limitations by State | StatuteChecker{% endblock %}
+{% block title %}Statute of Limitations Calculator | StatuteChecker{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center text-center mt-5">
-    <div class="col-md-8">
-        <h1 class="display-4 fw-bold mb-3">Can I still sue?</h1>
-        <p class="lead text-muted mb-5">Check the Statute of Limitations for civil legal issues in your state instantly.</p>
-        
-        <div class="card shadow-lg border-0 p-4">
-            <div id="formAlert" class="alert alert-danger d-none text-start shadow-sm" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i> <span id="alertMessage"></span>
-            </div>
-
-            <form id="searchForm" class="row g-3">
-                <div class="col-md-5">
-                    <label for="stateSelect" class="form-label fw-bold text-start d-block">State</label>
-                    <select class="form-select" id="stateSelect" required>
-                        <option value="" selected disabled>Select State...</option>
-                        {% for state in states %}
-                        <option value="{{ state.slug }}">{{ state.name }}</option>
-                        {% endfor %}
-                    </select>
+<div class="hero-section text-center">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <h1 class="display-5 fw-bold text-navy mb-3">Is it too late to sue?</h1>
+            <p class="lead text-slate mb-5">
+                Instantly check the <strong>Statute of Limitations</strong> for your state. <br>
+                Professional grade data for Attorneys, Adjusters, and Consumers.
+            </p>
+            
+            <div class="card border-0 shadow-lg p-4 p-md-5 text-start bg-white">
+                <div id="formAlert" class="alert alert-danger d-none shadow-sm border-0" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i> <span id="alertMessage"></span>
                 </div>
-                
-                <div class="col-md-5">
-                    <label class="form-label fw-bold text-start d-block">Legal Issue</label>
+
+                <form id="searchForm" class="row g-4 align-items-end">
+                    <!-- State Selection -->
+                    <div class="col-md-5">
+                        <label for="stateSelect" class="form-label fw-bold text-uppercase small text-slate">1. Select Jurisdiction</label>
+                        <select class="form-select form-select-lg border-2" id="stateSelect" required>
+                            <option value="" selected disabled>Choose State...</option>
+                            {% for state in states %}
+                            <option value="{{ state.slug }}">{{ state.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     
-                    <input type="hidden" id="issueSlug" name="issueSlug" required>
-                    
-                    <div class="dropdown w-100">
-                        <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center bg-white" 
-                                type="button" 
-                                id="issueDropdownBtn" 
-                                data-bs-toggle="dropdown" 
-                                aria-expanded="false">
-                            <span id="issueBtnText">Select State first...</span>
-                            <i class="fas fa-chevron-down small"></i>
-                        </button>
+                    <!-- Issue Selection -->
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold text-uppercase small text-slate">2. Legal Issue</label>
                         
-                        <div class="dropdown-menu w-100 p-0" aria-labelledby="issueDropdownBtn">
-                            <div class="p-2 border-bottom bg-light sticky-top">
-                                <input type="text" id="issueSearchInput" class="form-control form-control-sm" placeholder="Type to filter issues...">
-                            </div>
+                        <input type="hidden" id="issueSlug" name="issueSlug" required>
+                        
+                        <div class="dropdown w-100">
+                            <!-- FIX: Changed to form-select class for native arrow, removed manual <i> icon -->
+                            <button class="form-select form-select-lg w-100 text-start border-2" 
+                                    type="button" 
+                                    id="issueDropdownBtn" 
+                                    data-bs-toggle="dropdown" 
+                                    aria-expanded="false">
+                                <span id="issueBtnText">Select State first...</span>
+                            </button>
                             
-                            <div id="issueListContainer" style="max-height: 300px; overflow-y: auto;">
-                                <div class="p-3 text-muted small text-center">Please select a state to view available issues.</div>
+                            <div class="dropdown-menu w-100 p-0 shadow border-0 mt-1" aria-labelledby="issueDropdownBtn">
+                                <div class="p-2 border-bottom bg-light sticky-top">
+                                    <input type="text" id="issueSearchInput" class="form-control form-control-sm" placeholder="Type to filter...">
+                                </div>
+                                
+                                <div id="issueListContainer" style="max-height: 300px; overflow-y: auto;">
+                                    <div class="p-3 text-muted small text-center">Please select a state to view available issues.</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="button" onclick="performSearch()" class="btn btn-dark w-100 fw-bold">Check Now</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="ad-slot mt-5">
-            <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded" style="height: 90px; max-width: 970px; margin: 0 auto; opacity: 0.3;">
-                <small>Advertisement (970x90)</small>
+                    <!-- Action Button -->
+                    <div class="col-md-2">
+                        <button type="button" onclick="performSearch()" class="btn btn-primary w-100 btn-lg">
+                            <i class="fas fa-search text-white"></i>
+                        </button>
+                    </div>
+                </form>
             </div>
+
+            <!-- Trust Indicators -->
+            <div class="row mt-5 text-center g-4">
+                <div class="col-4">
+                    <div class="text-navy mb-2"><i class="fas fa-database fa-2x"></i></div>
+                    <div class="small fw-bold text-slate text-uppercase">Up-to-Date Code</div>
+                </div>
+                <div class="col-4">
+                    <div class="text-navy mb-2"><i class="fas fa-shield-alt fa-2x"></i></div>
+                    <div class="small fw-bold text-slate text-uppercase">Verify Eligibility</div>
+                </div>
+                <div class="col-4">
+                    <div class="text-navy mb-2"><i class="fas fa-bolt fa-2x"></i></div>
+                    <div class="small fw-bold text-slate text-uppercase">Instant Result</div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
 
 <script>
+    // Existing logic retained from original file
     const stateSelect = document.getElementById('stateSelect');
     const issueDropdownBtn = document.getElementById('issueDropdownBtn');
     const issueBtnText = document.getElementById('issueBtnText');
@@ -77,67 +99,50 @@
     const formAlert = document.getElementById('formAlert');
     const alertMessage = document.getElementById('alertMessage');
 
-    let allIssuesData = []; // Store for filtering
+    let allIssuesData = []; 
 
-    // 1. Load Issues on State Change
     stateSelect.addEventListener('change', function() {
         const stateSlug = this.value;
-        
-        // Hide Alert on change
         hideAlert();
-
-        // Reset UI
         issueBtnText.textContent = "Loading...";
         issueSlugInput.value = "";
         issueListContainer.innerHTML = '<div class="p-3 text-muted small text-center"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</div>';
         issueSearchInput.value = "";
         
-        // REMOVED: issueDropdownBtn.disabled = true; (Button stays enabled)
-
         if (stateSlug) {
             fetch(`/api/issues/${stateSlug}`)
                 .then(response => response.json())
                 .then(data => {
                     allIssuesData = data;
-                    
                     if (data.length > 0) {
                         renderDropdownItems(data);
                         issueBtnText.textContent = "Select Issue...";
-                        issueDropdownBtn.classList.remove('btn-outline-secondary');
-                        issueDropdownBtn.classList.add('form-select'); 
-                        // REMOVED: issueDropdownBtn.disabled = false;
+                        // FIX: Removed class manipulation since we use form-select by default now
                     } else {
                         issueBtnText.textContent = "No issues found";
                         issueListContainer.innerHTML = '<div class="p-3 text-muted small text-center">No legal issues found for this state.</div>';
-                        issueDropdownBtn.classList.add('btn-outline-secondary');
-                        issueDropdownBtn.classList.remove('form-select');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     issueBtnText.textContent = "Error loading data";
-                    issueListContainer.innerHTML = '<div class="p-3 text-danger small text-center">Failed to load data.</div>';
                 });
         }
     });
 
-    // 2. Filter Logic
     issueSearchInput.addEventListener('input', function(e) {
         const term = e.target.value.toLowerCase();
         const filtered = allIssuesData.filter(item => item.name.toLowerCase().includes(term));
         renderDropdownItems(filtered);
     });
 
-    // 3. Render Logic (Grouping & Sorting)
     function renderDropdownItems(items) {
         issueListContainer.innerHTML = "";
-
         if (items.length === 0) {
             issueListContainer.innerHTML = '<div class="dropdown-item text-muted disabled">No matches found</div>';
             return;
         }
 
-        // --- Grouping Logic ---
         const grouped = {};
         const ungrouped = [];
 
@@ -152,34 +157,21 @@
             }
         });
 
-        // --- Sorting Logic ---
         const sortById = (a, b) => a.id - b.id;
-
         ungrouped.sort(sortById);
+        const sortedGroupKeys = Object.keys(grouped).sort();
 
-        const sortedGroupKeys = Object.keys(grouped).sort((keyA, keyB) => {
-            const minA = Math.min(...grouped[keyA].map(i => i.id));
-            const minB = Math.min(...grouped[keyB].map(i => i.id));
-            return minA - minB;
-        });
-
-        // --- DOM Generation ---
-        
-        // A. Render Groups
         sortedGroupKeys.forEach(groupName => {
             const header = document.createElement('h6');
             header.className = "dropdown-header fw-bold text-uppercase small mt-2";
             header.textContent = groupName;
             issueListContainer.appendChild(header);
-
             grouped[groupName].sort(sortById);
-
             grouped[groupName].forEach(issue => {
                 issueListContainer.appendChild(createDropdownItem(issue));
             });
         });
 
-        // B. Render Ungrouped (Others)
         if (ungrouped.length > 0) {
             if (sortedGroupKeys.length > 0) {
                 const header = document.createElement('h6');
@@ -195,7 +187,7 @@
 
     function createDropdownItem(issue) {
         const a = document.createElement('a');
-        a.className = "dropdown-item cursor-pointer";
+        a.className = "dropdown-item cursor-pointer py-2";
         a.href = "#";
         a.textContent = issue.name;
         a.onclick = (e) => {
@@ -206,7 +198,7 @@
     }
 
     function selectIssue(issue) {
-        hideAlert(); // Hide alert on selection
+        hideAlert();
         issueSlugInput.value = issue.slug;
         issueBtnText.textContent = issue.name;
     }
@@ -223,15 +215,12 @@
     function performSearch() {
         const state = stateSelect.value;
         const issue = issueSlugInput.value;
-        
         if (state && issue) {
             window.location.href = `/limitations/${state}/${issue}`;
         } else {
-            // NEW: User-friendly notification
             let msg = "Please select a State and a Legal Issue to continue.";
             if (!state) msg = "Please select a State first.";
             else if (!issue) msg = "Please select a Legal Issue.";
-            
             showAlert(msg);
         }
     }
