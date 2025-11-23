@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: statute_checker_app
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - MYSQL_HOST=db
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DB=${MYSQL_DB}
+      - FLASK_APP=app.py
+    depends_on:
+      - db
+    networks:
+      - sc_network
+
+  db:
+    image: mysql:8.0
+    container_name: statute_checker_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      # Automatically import your SQL dump on first startup
+      - ./statute_checker.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - sc_network
+
+volumes:
+  db_data:
+
+networks:
+  sc_network:
