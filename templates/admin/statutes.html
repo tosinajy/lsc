@@ -3,11 +3,16 @@
 {% block admin_content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Statutes</h2>
-    {% if current_user.can('statutes', 'create') %}
-    <a href="{{ url_for('admin_statute_add') }}" class="btn btn-primary">
-        <i class="fas fa-plus"></i> Add Statute
-    </a>
-    {% endif %}
+    <div class="d-flex gap-2">
+        {% if current_user.can('statutes', 'create') %}
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            <i class="fas fa-file-upload me-1"></i> Upload Excel
+        </button>
+        <a href="{{ url_for('admin_statute_add') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Add Statute
+        </a>
+        {% endif %}
+    </div>
 </div>
 
 <!-- Filter Bar -->
@@ -119,5 +124,33 @@
         </nav>
     </div>
     {% endif %}
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Upload Statutes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin_statutes_upload') }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Excel File (.xlsx)</label>
+                        <input type="file" name="file" class="form-control" accept=".xlsx, .xls" required>
+                    </div>
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-1"></i> Ensure your columns match: 
+                        <strong>State, Issue, Time Limit Type, Min Time, Max Time, Duration...</strong>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -1,97 +1,109 @@
 {% extends 'admin/base.html' %}
 
 {% block admin_content %}
-<h2 class="mb-4">Role Permissions</h2>
-<p class="text-muted mb-4">Manage CRUD access for system roles. Uncheck boxes to deny specific operations.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Role Management</h2>
+</div>
 
-<div class="row">
-    {% for role in roles %}
-    <div class="col-md-6 mb-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 fw-bold">{{ role.name }}</h5>
-                <span class="badge bg-light text-dark">{{ role.slug }}</span>
-            </div>
-            <div class="card-body">
-                <form action="{{ url_for('update_role', role_id=role.id) }}" method="POST">
-                    
-                    {% set perms = role.permissions|from_json if role.permissions is string else role.permissions %}
-                    
-                    <!-- Users Permissions -->
-                    <h6 class="text-primary border-bottom pb-2 mb-3">User Management</h6>
-                    <div class="row mb-3">
-                        <div class="col-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="perm_users_create" id="u_c_{{role.id}}" 
-                                {{ 'checked' if perms.get('users', {}).get('create') == 1 else '' }}>
-                                <label class="form-check-label small" for="u_c_{{role.id}}">Create</label>
-                            </div>
-                        </div>
-                        <div class="col-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="perm_users_read" id="u_r_{{role.id}}" 
-                                {{ 'checked' if perms.get('users', {}).get('read') == 1 else '' }}>
-                                <label class="form-check-label small" for="u_r_{{role.id}}">Read</label>
-                            </div>
-                        </div>
-                        <div class="col-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="perm_users_update" id="u_u_{{role.id}}" 
-                                {{ 'checked' if perms.get('users', {}).get('update') == 1 else '' }}>
-                                <label class="form-check-label small" for="u_u_{{role.id}}">Update</label>
-                            </div>
-                        </div>
-                        <div class="col-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="perm_users_delete" id="u_d_{{role.id}}" 
-                                {{ 'checked' if perms.get('users', {}).get('delete') == 1 else '' }}>
-                                <label class="form-check-label small" for="u_d_{{role.id}}">Delete</label>
-                            </div>
-                        </div>
-                    </div>
+<div class="alert alert-light border shadow-sm mb-4">
+    <i class="fas fa-info-circle text-secondary me-2"></i>
+    Manage system access levels. Configure Create, Read, Update, and Delete (CRUD) rights for each resource across all roles.
+</div>
 
-                    <!-- Roles Permissions -->
-                    <h6 class="text-primary border-bottom pb-2 mb-3">Role Management</h6>
-                    <div class="row mb-4">
-                        <div class="col-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="perm_roles_create" id="r_c_{{role.id}}" 
-                                {{ 'checked' if perms.get('roles', {}).get('create') == 1 else '' }}>
-                                <label class="form-check-label small" for="r_c_{{role.id}}">Create</label>
-                            </div>
-                        </div>
-                        <div class="col-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="perm_roles_read" id="r_r_{{role.id}}" 
-                                {{ 'checked' if perms.get('roles', {}).get('read') == 1 else '' }}>
-                                <label class="form-check-label small" for="r_r_{{role.id}}">Read</label>
-                            </div>
-                        </div>
-                        <div class="col-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="perm_roles_update" id="r_u_{{role.id}}" 
-                                {{ 'checked' if perms.get('roles', {}).get('update') == 1 else '' }}>
-                                <label class="form-check-label small" for="r_u_{{role.id}}">Update</label>
-                            </div>
-                        </div>
-                        <div class="col-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="perm_roles_delete" id="r_d_{{role.id}}" 
-                                {{ 'checked' if perms.get('roles', {}).get('delete') == 1 else '' }}>
-                                <label class="form-check-label small" for="r_d_{{role.id}}">Delete</label>
-                            </div>
-                        </div>
-                    </div>
+<form action="{{ url_for('admin_roles_update_bulk') }}" method="POST">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover mb-0 align-middle">
+                    <thead class="bg-light text-center">
+                        <tr>
+                            <th class="text-start bg-white sticky-start" style="width: 200px;">Page Name</th>
+                            {% for role in roles %}
+                            <th colspan="4" class="text-uppercase small fw-bold border-start border-2">{{ role.name }}</th>
+                            {% endfor %}
+                        </tr>
+                        <tr class="small text-muted">
+                            <th class="bg-white sticky-start"></th> <!-- Spacer for Page Name col -->
+                            {% for role in roles %}
+                            <th class="fw-normal border-start border-2" style="width: 40px;" title="Create">C</th>
+                            <th class="fw-normal" style="width: 40px;" title="Read">R</th>
+                            <th class="fw-normal" style="width: 40px;" title="Update">U</th>
+                            <th class="fw-normal" style="width: 40px;" title="Delete">D</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set resources = [
+                            ('users', 'User Accounts'),
+                            ('roles', 'Role Configuration'),
+                            ('issues', 'Legal Issues'),
+                            ('statutes', 'Statute Data'),
+                            ('small_claims', 'Small Claims Data'),
+                            ('approvals', 'Approval Workflow'),
+                            ('logs', 'System Logs')
+                        ] %}
 
-                    {% if current_user.can('roles', 'update') %}
-                    <button type="submit" class="btn btn-sm btn-primary w-100">Update Permissions</button>
-                    {% else %}
-                    <button type="button" class="btn btn-sm btn-secondary w-100" disabled>Read Only</button>
-                    {% endif %}
-                </form>
+                        {% for res_key, res_label in resources %}
+                        <tr>
+                            <td class="fw-bold text-secondary ps-3 bg-white sticky-start">{{ res_label }}</td>
+                            
+                            {% for role in roles %}
+                                {% set perms = role.permissions|from_json if role.permissions is string else role.permissions %}
+                                {% set is_readonly = not current_user.can('roles', 'update') %}
+                                
+                                <!-- Create -->
+                                <td class="text-center border-start border-2">
+                                    <div class="form-check d-flex justify-content-center m-0">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="perm_{{role.id}}_{{res_key}}_create" 
+                                               id="p_{{role.id}}_{{res_key}}_c"
+                                               {{ 'checked' if perms.get(res_key, {}).get('create') == 1 else '' }}
+                                               {{ 'disabled' if is_readonly else '' }}>
+                                    </div>
+                                </td>
+                                <!-- Read -->
+                                <td class="text-center">
+                                    <div class="form-check d-flex justify-content-center m-0">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="perm_{{role.id}}_{{res_key}}_read" 
+                                               id="p_{{role.id}}_{{res_key}}_r"
+                                               {{ 'checked' if perms.get(res_key, {}).get('read') == 1 else '' }}
+                                               {{ 'disabled' if is_readonly else '' }}>
+                                    </div>
+                                </td>
+                                <!-- Update -->
+                                <td class="text-center">
+                                    <div class="form-check d-flex justify-content-center m-0">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="perm_{{role.id}}_{{res_key}}_update" 
+                                               id="p_{{role.id}}_{{res_key}}_u"
+                                               {{ 'checked' if perms.get(res_key, {}).get('update') == 1 else '' }}
+                                               {{ 'disabled' if is_readonly else '' }}>
+                                    </div>
+                                </td>
+                                <!-- Delete -->
+                                <td class="text-center">
+                                    <div class="form-check d-flex justify-content-center m-0">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="perm_{{role.id}}_{{res_key}}_delete" 
+                                               id="p_{{role.id}}_{{res_key}}_d"
+                                               {{ 'checked' if perms.get(res_key, {}).get('delete') == 1 else '' }}
+                                               {{ 'disabled' if is_readonly else '' }}>
+                                    </div>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
+        
+        {% if current_user.can('roles', 'update') %}
+        <div class="card-footer bg-white py-3 text-end sticky-bottom">
+            <button type="submit" class="btn btn-primary px-4">Save All Permissions</button>
+        </div>
+        {% endif %}
     </div>
-    {% endfor %}
-</div>
+</form>
 {% endblock %}

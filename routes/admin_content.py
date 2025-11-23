@@ -1,5 +1,6 @@
 import math
-from flask import render_template, request, redirect, url_for, flash
+import pandas as pd
+from flask import render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from mysql.connector import Error
 from db import get_db_connection
@@ -39,7 +40,7 @@ def register(app):
             name = request.form['name']
             slug = request.form['slug']
             description = request.form['description']
-            issue_group = request.form['issue_group'] # NEW
+            issue_group = request.form['issue_group'] 
             
             if not name or not slug:
                 flash('Name and Slug are required.', 'danger')
@@ -78,7 +79,7 @@ def register(app):
             name = request.form['name']
             slug = request.form['slug']
             description = request.form['description']
-            issue_group = request.form['issue_group'] # NEW
+            issue_group = request.form['issue_group'] 
             
             cursor.execute("SELECT id FROM issues WHERE slug = %s AND id != %s", (slug, issue_id))
             if cursor.fetchone():
@@ -324,6 +325,150 @@ def register(app):
                                issue_filter=issue_filter,
                                all_states=all_states,
                                all_issues=all_issues)
+
+    @app.route('/admin/statutes/upload', methods=['POST'])
+    @login_required
+    @permission_required('statutes', 'create')
+    def admin_statutes_upload():
+        file = request.files.get('file')
+        if not file or not file.filename:
+            flash('No file selected', 'danger')
+            return redirect(url_for('admin_statutes'))
+
+        try:
+            df = pd.read_excel(file)
+            df.columns = [c.lower().strip() for c in df.columns]
+        except Exception as e:
+            flash(f'Error reading file: {e}', 'danger')
+            return redirect(url_for('admin_statutes'))
+
+        upload_limit = current_app.config.get('UPLOAD_ROW_LIMIT', 50)
+        if len(df) > upload_limit:
+            flash(f'Upload failed: Exceeds row limit of {upload_limit}.', 'danger')
+            return redirect(url_for('admin_statutes'))
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Fetch Mappings
+        cursor.execute("SELECT id, name FROM states")
+        state_map = {row['name'].lower(): row['id'] for row in cursor.fetchall()}
+        
+        cursor.execute("SELECT id, name FROM issues")
+        issue_map = {row['name'].lower(): row['id'] for row in cursor.fetchall()}
+
+        new_count, updated_count, failed_count = 0, 0, 0
+        failed_rows = []
+
+        valid_types = ['exact', 'range', 'conditional']
+        valid_durations = ['years', 'months', 'days']
+
+        for index, row in df.iterrows():
+            state_name = str(row.get('state', '')).strip()
+            issue_name = str(row.get('issue', '')).strip()
+            
+            # Validation 1: Mappings
+            state_id = state_map.get(state_name.lower())
+            issue_id = issue_map.get(issue_name.lower())
+            
+            if not state_id or not issue_id:
+                failed_count += 1
+                failed_rows.append(f"{state_name} / {issue_name} (Invalid State or Issue)")
+                continue
+
+            # Validation 2: Types & Durations
+            time_limit_type = str(row.get('time limit type', 'exact')).strip().lower()
+            duration = str(row.get('duration', 'years')).strip().lower()
+
+            if time_limit_type not in valid_types:
+                failed_count += 1
+                failed_rows.append(f"{state_name} / {issue_name} (Invalid Type: {time_limit_type})")
+                continue
+            if duration not in valid_durations:
+                failed_count += 1
+                failed_rows.append(f"{state_name} / {issue_name} (Invalid Duration: {duration})")
+                continue
+
+            # Validation 3: Logic Checks
+            min_time = row.get('min time')
+            max_time = row.get('max time')
+            
+            # Ensure numeric safety
+            try:
+                min_val = int(float(min_time)) if pd.notna(min_time) else None
+                max_val = int(float(max_time)) if pd.notna(max_time) else None
+            except (ValueError, TypeError):
+                failed_count += 1
+                failed_rows.append(f"{state_name} / {issue_name} (Numeric Error)")
+                continue
+
+            if time_limit_type == 'exact' and max_val is not None:
+                failed_count += 1
+                failed_rows.append(f"{state_name} / {issue_name} (Exact type cannot have Max Time)")
+                continue
+            
+            if time_limit_type in ['range', 'conditional']:
+                if min_val is None or max_val is None:
+                    failed_count += 1
+                    failed_rows.append(f"{state_name} / {issue_name} (Range/Conditional needs both Min and Max)")
+                    continue
+
+            # Handle 'Exact' logic for DB storage (Min is used as primary value usually, or handle based on schema preference)
+            # If exact, usually min_time holds the value, max can be same or null. 
+            # Logic in add_statute form sets both to same value. Let's mirror that for consistency if needed,
+            # or strictly follow schema. Schema has both.
+            if time_limit_type == 'exact':
+                # If exact, ensure min_val is set
+                if min_val is None: 
+                    failed_count += 1
+                    failed_rows.append(f"{state_name} / {issue_name} (Exact requires Min Time)")
+                    continue
+                max_val = min_val # Normalize for DB if schema expects it, or leave None if allowed.
+                                  # Current manual add sets both. Let's set both.
+
+            # Check Existing
+            cursor.execute("SELECT id FROM statutes WHERE state_id = %s AND issue_id = %s", (state_id, issue_id))
+            existing = cursor.fetchone()
+            
+            action_type = 'UPDATE' if existing else 'INSERT'
+            statute_id = existing['id'] if existing else None
+
+            # Insert Approval
+            try:
+                sql = """
+                    INSERT INTO statute_approvals (
+                        statute_id, state_id, issue_id, issue_info, time_limit_type, 
+                        time_limit_min, time_limit_max, duration, details, code_reference, 
+                        official_source_url, other_source_url, conditions_exceptions, 
+                        examples, tolling, action_type, status, submitted_by
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PENDING', %s)
+                """
+                params = (
+                    statute_id, state_id, issue_id, 
+                    str(row.get('issue info', '')), time_limit_type, min_val, max_val, duration,
+                    str(row.get('details', '')), str(row.get('code reference', '')),
+                    str(row.get('official url', '')), str(row.get('other url', '')),
+                    str(row.get('exceptions', '')), str(row.get('examples', '')),
+                    str(row.get('tolling', '')), action_type, current_user.username
+                )
+                cursor.execute(sql, params)
+                
+                if action_type == 'UPDATE': updated_count += 1
+                else: new_count += 1
+                
+            except Error as e:
+                failed_count += 1
+                failed_rows.append(f"{state_name} / {issue_name} (DB Error: {e})")
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        flash(f"Upload Complete. New: {new_count}, Updated: {updated_count}, Failed: {failed_count}", 'info')
+        if failed_rows:
+            flash(f"Failed Rows: {', '.join(failed_rows[:10])}...", 'warning')
+
+        return redirect(url_for('admin_statutes'))
 
     @app.route('/admin/statutes/add', methods=['GET', 'POST'])
     @login_required

@@ -37,7 +37,6 @@
             <a href="{{ url_for('admin_statutes') }}" class="{{ 'active' if request.endpoint and 'admin_statute' in request.endpoint and 'approval' not in request.endpoint else '' }}">
                 <i class="fas fa-book me-2"></i> Statutes
             </a>
-            <!-- New Reports Link -->
             <a href="{{ url_for('admin_reports') }}" class="{{ 'active' if request.endpoint == 'admin_reports' else '' }}">
                 <i class="fas fa-flag me-2"></i> Issue Reports
             </a>
@@ -70,6 +69,12 @@
             {% if current_user.can('logs', 'read') %}
             <a href="{{ url_for('admin_login_logs') }}" class="{{ 'active' if request.endpoint == 'admin_login_logs' else '' }}">
                 <i class="fas fa-history me-2"></i> Login History
+            </a>
+            {% endif %}
+            
+            {% if current_user.role_name == 'Administrator' %}
+            <a href="{{ url_for('admin_settings') }}" class="{{ 'active' if request.endpoint == 'admin_settings' else '' }}">
+                <i class="fas fa-cogs me-2"></i> Settings
             </a>
             {% endif %}
             
