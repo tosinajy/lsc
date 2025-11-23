@@ -9,6 +9,10 @@
         <p class="lead text-muted mb-5">Check the Statute of Limitations for civil legal issues in your state instantly.</p>
         
         <div class="card shadow-lg border-0 p-4">
+            <div id="formAlert" class="alert alert-danger d-none text-start shadow-sm" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i> <span id="alertMessage"></span>
+            </div>
+
             <form id="searchForm" class="row g-3">
                 <div class="col-md-5">
                     <label for="stateSelect" class="form-label fw-bold text-start d-block">State</label>
@@ -19,79 +23,216 @@
                         {% endfor %}
                     </select>
                 </div>
+                
                 <div class="col-md-5">
-                    <label for="issueSelect" class="form-label fw-bold text-start d-block">Legal Issue</label>
-                    <!-- Field Disabled by Default -->
-                    <select class="form-select" id="issueSelect" required disabled>
-                        <option value="" selected disabled>Select State first...</option>
-                    </select>
+                    <label class="form-label fw-bold text-start d-block">Legal Issue</label>
+                    
+                    <input type="hidden" id="issueSlug" name="issueSlug" required>
+                    
+                    <div class="dropdown w-100">
+                        <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center bg-white" 
+                                type="button" 
+                                id="issueDropdownBtn" 
+                                data-bs-toggle="dropdown" 
+                                aria-expanded="false">
+                            <span id="issueBtnText">Select State first...</span>
+                            <i class="fas fa-chevron-down small"></i>
+                        </button>
+                        
+                        <div class="dropdown-menu w-100 p-0" aria-labelledby="issueDropdownBtn">
+                            <div class="p-2 border-bottom bg-light sticky-top">
+                                <input type="text" id="issueSearchInput" class="form-control form-control-sm" placeholder="Type to filter issues...">
+                            </div>
+                            
+                            <div id="issueListContainer" style="max-height: 300px; overflow-y: auto;">
+                                <div class="p-3 text-muted small text-center">Please select a state to view available issues.</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="button" onclick="performSearch()" class="btn btn-dark w-100 fw-bold">Check Now</button>
                 </div>
             </form>
         </div>
 
-        <!-- AD PLACEHOLDER: 970x90 -->
         <div class="ad-slot mt-5">
-            <!-- Replace with Ad Network Code -->
             <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded" style="height: 90px; max-width: 970px; margin: 0 auto; opacity: 0.3;">
                 <small>Advertisement (970x90)</small>
             </div>
         </div>
-
     </div>
 </div>
 
 <script>
-    // DOM Elements
     const stateSelect = document.getElementById('stateSelect');
-    const issueSelect = document.getElementById('issueSelect');
+    const issueDropdownBtn = document.getElementById('issueDropdownBtn');
+    const issueBtnText = document.getElementById('issueBtnText');
+    const issueListContainer = document.getElementById('issueListContainer');
+    const issueSearchInput = document.getElementById('issueSearchInput');
+    const issueSlugInput = document.getElementById('issueSlug');
+    
+    // Alert Elements
+    const formAlert = document.getElementById('formAlert');
+    const alertMessage = document.getElementById('alertMessage');
 
-    // Event Listener for State Change
+    let allIssuesData = []; // Store for filtering
+
+    // 1. Load Issues on State Change
     stateSelect.addEventListener('change', function() {
         const stateSlug = this.value;
         
-        // Reset Issue Select
-        issueSelect.innerHTML = '<option value="" selected disabled>Loading...</option>';
-        issueSelect.disabled = true;
+        // Hide Alert on change
+        hideAlert();
+
+        // Reset UI
+        issueBtnText.textContent = "Loading...";
+        issueSlugInput.value = "";
+        issueListContainer.innerHTML = '<div class="p-3 text-muted small text-center"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</div>';
+        issueSearchInput.value = "";
+        
+        // REMOVED: issueDropdownBtn.disabled = true; (Button stays enabled)
 
         if (stateSlug) {
-            // Fetch issues via API
             fetch(`/api/issues/${stateSlug}`)
                 .then(response => response.json())
                 .then(data => {
-                    // Clear loading message
-                    issueSelect.innerHTML = '<option value="" selected disabled>Select Issue...</option>';
+                    allIssuesData = data;
                     
                     if (data.length > 0) {
-                        // Populate options
-                        data.forEach(issue => {
-                            const option = document.createElement('option');
-                            option.value = issue.slug;
-                            option.textContent = issue.name;
-                            issueSelect.appendChild(option);
-                        });
-                        // Enable field
-                        issueSelect.disabled = false;
+                        renderDropdownItems(data);
+                        issueBtnText.textContent = "Select Issue...";
+                        issueDropdownBtn.classList.remove('btn-outline-secondary');
+                        issueDropdownBtn.classList.add('form-select'); 
+                        // REMOVED: issueDropdownBtn.disabled = false;
                     } else {
-                        issueSelect.innerHTML = '<option value="" disabled>No issues found</option>';
+                        issueBtnText.textContent = "No issues found";
+                        issueListContainer.innerHTML = '<div class="p-3 text-muted small text-center">No legal issues found for this state.</div>';
+                        issueDropdownBtn.classList.add('btn-outline-secondary');
+                        issueDropdownBtn.classList.remove('form-select');
                     }
                 })
                 .catch(error => {
-                    console.error('Error loading issues:', error);
-                    issueSelect.innerHTML = '<option value="" disabled>Error loading data</option>';
+                    console.error('Error:', error);
+                    issueBtnText.textContent = "Error loading data";
+                    issueListContainer.innerHTML = '<div class="p-3 text-danger small text-center">Failed to load data.</div>';
                 });
         }
     });
 
+    // 2. Filter Logic
+    issueSearchInput.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        const filtered = allIssuesData.filter(item => item.name.toLowerCase().includes(term));
+        renderDropdownItems(filtered);
+    });
+
+    // 3. Render Logic (Grouping & Sorting)
+    function renderDropdownItems(items) {
+        issueListContainer.innerHTML = "";
+
+        if (items.length === 0) {
+            issueListContainer.innerHTML = '<div class="dropdown-item text-muted disabled">No matches found</div>';
+            return;
+        }
+
+        // --- Grouping Logic ---
+        const grouped = {};
+        const ungrouped = [];
+
+        items.forEach(item => {
+            if (item.issue_group) {
+                if (!grouped[item.issue_group]) {
+                    grouped[item.issue_group] = [];
+                }
+                grouped[item.issue_group].push(item);
+            } else {
+                ungrouped.push(item);
+            }
+        });
+
+        // --- Sorting Logic ---
+        const sortById = (a, b) => a.id - b.id;
+
+        ungrouped.sort(sortById);
+
+        const sortedGroupKeys = Object.keys(grouped).sort((keyA, keyB) => {
+            const minA = Math.min(...grouped[keyA].map(i => i.id));
+            const minB = Math.min(...grouped[keyB].map(i => i.id));
+            return minA - minB;
+        });
+
+        // --- DOM Generation ---
+        
+        // A. Render Groups
+        sortedGroupKeys.forEach(groupName => {
+            const header = document.createElement('h6');
+            header.className = "dropdown-header fw-bold text-uppercase small mt-2";
+            header.textContent = groupName;
+            issueListContainer.appendChild(header);
+
+            grouped[groupName].sort(sortById);
+
+            grouped[groupName].forEach(issue => {
+                issueListContainer.appendChild(createDropdownItem(issue));
+            });
+        });
+
+        // B. Render Ungrouped (Others)
+        if (ungrouped.length > 0) {
+            if (sortedGroupKeys.length > 0) {
+                const header = document.createElement('h6');
+                header.className = "dropdown-header fw-bold text-uppercase small mt-2";
+                header.textContent = "Other";
+                issueListContainer.appendChild(header);
+            }
+            ungrouped.forEach(issue => {
+                issueListContainer.appendChild(createDropdownItem(issue));
+            });
+        }
+    }
+
+    function createDropdownItem(issue) {
+        const a = document.createElement('a');
+        a.className = "dropdown-item cursor-pointer";
+        a.href = "#";
+        a.textContent = issue.name;
+        a.onclick = (e) => {
+            e.preventDefault();
+            selectIssue(issue);
+        };
+        return a;
+    }
+
+    function selectIssue(issue) {
+        hideAlert(); // Hide alert on selection
+        issueSlugInput.value = issue.slug;
+        issueBtnText.textContent = issue.name;
+    }
+
+    function showAlert(msg) {
+        alertMessage.textContent = msg;
+        formAlert.classList.remove('d-none');
+    }
+
+    function hideAlert() {
+        formAlert.classList.add('d-none');
+    }
+
     function performSearch() {
         const state = stateSelect.value;
-        const issue = issueSelect.value;
-        if(state && issue) {
+        const issue = issueSlugInput.value;
+        
+        if (state && issue) {
             window.location.href = `/limitations/${state}/${issue}`;
         } else {
-            alert("Please select both a state and an issue.");
+            // NEW: User-friendly notification
+            let msg = "Please select a State and a Legal Issue to continue.";
+            if (!state) msg = "Please select a State first.";
+            else if (!issue) msg = "Please select a Legal Issue.";
+            
+            showAlert(msg);
         }
     }
 </script>

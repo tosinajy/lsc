@@ -24,6 +24,12 @@
                         <input type="text" class="form-control bg-light" id="slug" name="slug" value="{{ issue.slug if issue else '' }}" required>
                         <div class="form-text">URL-friendly identifier (e.g., personal-injury). Must be unique.</div>
                     </div>
+
+                    <div class="mb-3">
+                        <label for="issue_group" class="form-label fw-bold">Group / Category</label>
+                        <input type="text" class="form-control" id="issue_group" name="issue_group" value="{{ issue.issue_group if issue else '' }}" placeholder="e.g. Civil Torts, Contracts, Family Law">
+                        <div class="form-text">Used to group issues in the dropdown menu.</div>
+                    </div>
                     
                     <div class="mb-4">
                         <label for="description" class="form-label fw-bold">Description</label>

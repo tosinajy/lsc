@@ -86,6 +86,12 @@
                         <textarea class="form-control" id="details" name="details" rows="3">{{ statute.details if statute else '' }}</textarea>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="tolling" class="form-label fw-bold">Tolling (Pausing the Clock)</label>
+                        <textarea class="form-control" id="tolling" name="tolling" rows="2">{{ statute.tolling if statute else '' }}</textarea>
+                        <div class="form-text">Details on when the statute of limitations might be paused (e.g., if defendant leaves state, or plaintiff is a minor).</div>
+                    </div>
+
                     <div class="mb-4">
                         <label for="code_reference" class="form-label fw-bold">Legal Code Reference</label>
                         <input type="text" class="form-control" id="code_reference" name="code_reference" value="{{ statute.code_reference if statute else '' }}">

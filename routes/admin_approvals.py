@@ -259,30 +259,30 @@ def register(app):
             if not approval or approval['status'] != 'PENDING':
                 flash('Invalid approval request.', 'danger')
                 return redirect(url_for('admin_statutes_approvals'))
-                
+            
             if approval['action_type'] == 'INSERT':
                 cursor.execute("""
                     INSERT INTO statutes (
                         state_id, issue_id, issue_info, time_limit_type, time_limit_min, time_limit_max, duration,
-                        details, code_reference, official_source_url, other_source_url, conditions_exceptions, examples,
+                        details, code_reference, official_source_url, other_source_url, conditions_exceptions, examples, tolling,
                         updated_by, updated_dt
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                 """, (approval['state_id'], approval['issue_id'], approval['issue_info'], approval['time_limit_type'], 
                       approval['time_limit_min'], approval['time_limit_max'], approval['duration'], approval['details'], 
                       approval['code_reference'], approval['official_source_url'], approval['other_source_url'], 
-                      approval['conditions_exceptions'], approval['examples'], approval['submitted_by']))
+                      approval['conditions_exceptions'], approval['examples'], approval['tolling'], approval['submitted_by']))
             
             elif approval['action_type'] == 'UPDATE':
                 cursor.execute("""
                     UPDATE statutes SET 
                         state_id=%s, issue_id=%s, issue_info=%s, time_limit_type=%s, time_limit_min=%s, time_limit_max=%s, duration=%s,
-                        details=%s, code_reference=%s, official_source_url=%s, other_source_url=%s, conditions_exceptions=%s, examples=%s,
+                        details=%s, code_reference=%s, official_source_url=%s, other_source_url=%s, conditions_exceptions=%s, examples=%s, tolling=%s,
                         updated_by=%s, updated_dt=NOW()
                     WHERE id=%s
                 """, (approval['state_id'], approval['issue_id'], approval['issue_info'], approval['time_limit_type'], 
                       approval['time_limit_min'], approval['time_limit_max'], approval['duration'], approval['details'], 
                       approval['code_reference'], approval['official_source_url'], approval['other_source_url'], 
-                      approval['conditions_exceptions'], approval['examples'], approval['submitted_by'], approval['statute_id']))
+                      approval['conditions_exceptions'], approval['examples'], approval['tolling'], approval['submitted_by'], approval['statute_id']))
                 
             elif approval['action_type'] == 'DELETE':
                 cursor.execute("DELETE FROM statutes WHERE id = %s", (approval['statute_id'],))

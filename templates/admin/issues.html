@@ -35,6 +35,7 @@
                 <tr>
                     <th class="ps-4">Name</th>
                     <th>Slug</th>
+                    <th>Group</th>
                     <th>Description</th>
                     <th>Last Updated</th>
                     <th class="text-end pe-4">Actions</th>
@@ -44,6 +45,13 @@
                 {% for issue in issues %}
                 <tr>
                     <td class="ps-4 fw-bold">{{ issue.name }}</td>
+                    <td>
+                        {% if issue.issue_group %}
+                        <span class="badge bg-secondary">{{ issue.issue_group }}</span>
+                        {% else %}
+                        <span class="text-muted small">-</span>
+                        {% endif %}
+                    </td>
                     <td><span class="badge bg-light text-dark border">{{ issue.slug }}</span></td>
                     <td class="text-muted small text-truncate" style="max-width: 250px;">{{ issue.description }}</td>
                     <td class="small">

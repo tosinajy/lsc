@@ -16,15 +16,22 @@
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body p-5">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-4">
+                <ol class="breadcrumb mb-4">
                         <li class="breadcrumb-item"><a href="/">Home</a></li>
                         <li class="breadcrumb-item active">{{ data.state_name }} ({{ data.state_code }})</li>
+                        {% if data.issue_group %}
+                        <li class="breadcrumb-item active">{{ data.issue_group }}</li>
+                        {% endif %}
                         <li class="breadcrumb-item active">{{ data.issue_name }}</li>
                     </ol>
                 </nav>
 
-                <h1 class="fw-bold mb-3">{{ data.state_name }}: {{ data.issue_name }}</h1>
+                <h1 class="fw-bold mb-3">
+                    {{ data.state_name }}: {{ data.issue_name }}
+                    {% if data.issue_group %}
+                    <span class="text-muted fs-4 d-block mt-1">{{ data.issue_group }}</span>
+                    {% endif %}
+                </h1>
                 
                 {% if data.issue_info %}
                 <p class="text-muted mb-4"><i class="fas fa-info-circle me-1"></i> {{ data.issue_info }}</p>
@@ -61,6 +68,23 @@
                 </div>
                 {% endif %}
                 
+                <h5 class="fw-bold">Details</h5>
+                <p class="lead mb-4">{{ data.details }}</p>
+
+                {% if data.tolling %}
+                <div class="mb-4">
+                    <h6 class="fw-bold text-primary"><i class="fas fa-pause-circle me-2"></i>Tolling & Pausing the Clock</h6>
+                    <p class="small">{{ data.tolling }}</p>
+                </div>
+                {% endif %}
+
+                {% if data.examples %}
+                <div class="bg-light p-3 rounded border mb-4">
+                    <h6 class="fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i>Example</h6>
+                    <p class="mb-0 fst-italic">{{ data.examples }}</p>
+                </div>
+                {% endif %}
+
                 <hr>
                 
                 <div class="text-muted small">

@@ -26,7 +26,7 @@ def register(app):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         query = """
-            SELECT DISTINCT i.name, i.slug
+            SELECT DISTINCT i.id, i.name, i.slug, i.issue_group
             FROM issues i
             JOIN statutes st ON i.id = st.issue_id
             JOIN states s ON st.state_id = s.id
@@ -50,6 +50,7 @@ def register(app):
                 sc.small_claims_cap,
                 sc.small_claims_info,
                 i.name as issue_name,
+                i.issue_group,  -- ADDED
                 i.description as issue_desc,
                 st.duration,
                 st.time_limit_type,

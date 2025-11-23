@@ -39,9 +39,12 @@ def register(app):
             name = request.form['name']
             slug = request.form['slug']
             description = request.form['description']
+            issue_group = request.form['issue_group'] # NEW
+            
             if not name or not slug:
                 flash('Name and Slug are required.', 'danger')
                 return redirect(url_for('admin_issue_add'))
+            
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
             cursor.execute("SELECT id FROM issues WHERE slug = %s", (slug,))
@@ -52,8 +55,8 @@ def register(app):
                 return redirect(url_for('admin_issue_add'))
             try:
                 cursor.execute(
-                    "INSERT INTO issues (name, slug, description, updated_by, updated_dt) VALUES (%s, %s, %s, %s, NOW())",
-                    (name, slug, description, current_user.username)
+                    "INSERT INTO issues (name, slug, description, issue_group, updated_by, updated_dt) VALUES (%s, %s, %s, %s, %s, NOW())",
+                    (name, slug, description, issue_group, current_user.username)
                 )
                 conn.commit()
                 flash('Issue category added.', 'success')
@@ -75,6 +78,8 @@ def register(app):
             name = request.form['name']
             slug = request.form['slug']
             description = request.form['description']
+            issue_group = request.form['issue_group'] # NEW
+            
             cursor.execute("SELECT id FROM issues WHERE slug = %s AND id != %s", (slug, issue_id))
             if cursor.fetchone():
                 flash('Error: Slug is already taken by another issue.', 'danger')
@@ -83,8 +88,8 @@ def register(app):
                 return redirect(url_for('admin_issue_edit', issue_id=issue_id))
             try:
                 cursor.execute(
-                    "UPDATE issues SET name=%s, slug=%s, description=%s, updated_by=%s, updated_dt=NOW() WHERE id=%s",
-                    (name, slug, description, current_user.username, issue_id)
+                    "UPDATE issues SET name=%s, slug=%s, description=%s, issue_group=%s, updated_by=%s, updated_dt=NOW() WHERE id=%s",
+                    (name, slug, description, issue_group, current_user.username, issue_id)
                 )
                 conn.commit()
                 flash('Issue updated successfully.', 'success')
@@ -348,7 +353,8 @@ def register(app):
             other_source_url = request.form.get('other_source_url')
             conditions_exceptions = request.form.get('conditions_exceptions')
             examples = request.form.get('examples')
-            
+            tolling = request.form.get('tolling')
+
             if not state_id or not issue_id or not time_limit_min:
                 flash('State, Issue, and Time Limit are required.', 'danger')
             else:
@@ -360,11 +366,11 @@ def register(app):
                         cursor.execute("""
                             INSERT INTO statute_approvals (
                                 state_id, issue_id, issue_info, time_limit_type, time_limit_min, time_limit_max, duration,
-                                details, code_reference, official_source_url, other_source_url, conditions_exceptions, examples,
+                                details, code_reference, official_source_url, other_source_url, conditions_exceptions, examples, tolling,
                                 action_type, status, submitted_by
-                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'INSERT', 'PENDING', %s)
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'INSERT', 'PENDING', %s)
                         """, (state_id, issue_id, issue_info, time_limit_type, time_limit_min, time_limit_max, duration,
-                              details, code_reference, official_source_url, other_source_url, conditions_exceptions, examples,
+                              details, code_reference, official_source_url, other_source_url, conditions_exceptions, examples, tolling,
                               current_user.username))
                         conn.commit()
                         flash('Statute creation submitted for approval.', 'info')
@@ -411,7 +417,8 @@ def register(app):
             other_source_url = request.form.get('other_source_url')
             conditions_exceptions = request.form.get('conditions_exceptions')
             examples = request.form.get('examples')
-            
+            tolling = request.form.get('tolling')
+
             try:
                 cursor.execute("SELECT id FROM statutes WHERE state_id=%s AND issue_id=%s AND id != %s", (state_id, issue_id, statute_id))
                 if cursor.fetchone():
@@ -420,11 +427,11 @@ def register(app):
                     cursor.execute("""
                         INSERT INTO statute_approvals (
                             statute_id, state_id, issue_id, issue_info, time_limit_type, time_limit_min, time_limit_max, duration,
-                            details, code_reference, official_source_url, other_source_url, conditions_exceptions, examples,
+                            details, code_reference, official_source_url, other_source_url, conditions_exceptions, examples, tolling,
                             action_type, status, submitted_by
-                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'UPDATE', 'PENDING', %s)
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'UPDATE', 'PENDING', %s)
                     """, (statute_id, state_id, issue_id, issue_info, time_limit_type, time_limit_min, time_limit_max, duration,
-                          details, code_reference, official_source_url, other_source_url, conditions_exceptions, examples,
+                          details, code_reference, official_source_url, other_source_url, conditions_exceptions, examples, tolling,
                           current_user.username))
                     conn.commit()
                     flash('Statute update submitted for approval.', 'info')
