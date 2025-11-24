@@ -1,108 +1,182 @@
-/* Import Professional Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+/* Import Fonts: Inter (UI) and Playfair Display (Headings) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@600;700;800&display=swap');
 
 :root {
-    --primary-navy: #0f172a;
-    --secondary-slate: #475569;
-    --accent-blue: #2563eb;
-    --bg-light: #f8fafc;
-    --border-color: #e2e8f0;
-    --text-dark: #1e293b;
-    --success-green: #059669;
+    /* Authoritative Palette */
+    --primary-navy: #002147;     /* Oxford Blue - Trust, Stability */
+    --secondary-blue: #003366;   /* Deep Blue */
+    --accent-gold: #C5A065;      /* Muted Gold - Legal/Premium feel */
+    
+    /* Neutrals */
+    --text-dark: #1a1a1a;
+    --text-slate: #4a5568;
+    --bg-body: #F4F6F8;          /* Professional Light Grey */
+    --bg-white: #ffffff;
+    
+    /* Borders & Shadows */
+    --border-subtle: rgba(0, 33, 71, 0.08);
+    --shadow-diffused: 0 20px 40px -10px rgba(0, 33, 71, 0.08), 0 10px 20px -10px rgba(0, 33, 71, 0.04);
+    --shadow-hover: 0 25px 50px -12px rgba(0, 33, 71, 0.15);
 }
 
 body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--bg-light);
+    background-color: var(--bg-body);
     color: var(--text-dark);
+    line-height: 1.6;
     min-height: 100vh;
 }
 
+/* Typography Authority */
+h1, h2, h3, h4, h5, .navbar-brand, .serif-font {
+    font-family: 'Playfair Display', serif;
+    color: var(--primary-navy);
+}
+
+.text-gold { color: var(--accent-gold); }
+.text-navy { color: var(--primary-navy); }
+.text-slate { color: var(--text-slate); }
+
 /* Navbar */
 .navbar {
-    background-color: #ffffff !important;
-    border-bottom: 1px solid var(--border-color);
-    padding: 1rem 0;
+    background-color: var(--bg-white) !important;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 1.25rem 0;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
 }
 
 .navbar-brand {
-    color: var(--primary-navy) !important;
     font-weight: 700;
-    font-size: 1.5rem;
-    letter-spacing: -0.5px;
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
 }
 
-/* Cards */
+/* Professional Cards */
 .card {
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    background: #fff;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px; /* Sharper corners for business feel */
+    box-shadow: var(--shadow-diffused);
+    background: var(--bg-white);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.card:hover {
-    border-color: var(--accent-blue);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+.shadow-diffused {
+    box-shadow: var(--shadow-diffused) !important;
 }
 
 /* Buttons */
+.btn {
+    border-radius: 4px;
+    padding: 0.6rem 1.25rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    transition: all 0.2s;
+}
+
 .btn-primary {
     background-color: var(--primary-navy);
     border-color: var(--primary-navy);
-    padding: 0.75rem 1.5rem;
-    font-weight: 600;
 }
 
 .btn-primary:hover {
-    background-color: #1e293b; /* Slightly lighter navy */
-    border-color: #1e293b;
+    background-color: var(--secondary-blue);
+    border-color: var(--secondary-blue);
+    transform: translateY(-1px);
 }
 
-/* Typography Helpers */
-.text-navy { color: var(--primary-navy); }
-.text-slate { color: var(--secondary-slate); }
-.fw-bold { font-weight: 700 !important; }
+.btn-outline-secondary {
+    border-color: #cbd5e0;
+    color: var(--text-slate);
+}
 
-/* Home Page Specifics */
+.btn-outline-secondary:hover {
+    background-color: #f7fafc;
+    color: var(--primary-navy);
+    border-color: var(--primary-navy);
+}
+
+/* Quick-Tap Pills */
+.btn-pill-custom {
+    background-color: #f1f5f9;
+    color: var(--text-slate);
+    border: 1px solid #e2e8f0;
+    border-radius: 50px; /* Full pill shape */
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.btn-pill-custom:hover {
+    background-color: var(--primary-navy);
+    color: #ffffff;
+    border-color: var(--primary-navy);
+    transform: translateY(-1px);
+}
+
+/* Form Controls */
+.form-control, .form-select {
+    border-color: #e2e8f0;
+    border-radius: 4px;
+    padding: 0.75rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-navy);
+    box-shadow: 0 0 0 3px rgba(0, 33, 71, 0.1);
+}
+
+/* Hero Section */
 .hero-section {
-    padding: 3rem 0;
+    padding: 5rem 0;
 }
 
 /* Statute Page Specifics */
 .statute-hero {
-    background: var(--primary-navy);
+    background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-blue) 100%);
     color: white;
-    border-radius: 12px;
-    padding: 2rem;
-    margin-bottom: 2rem;
+    border-radius: 8px;
+    padding: 3rem;
+    margin-bottom: 2.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.statute-hero h1, .statute-hero h2, .statute-hero .serif-font {
+    color: white; /* Override default navy */
+}
+
+/* Decorative subtle line for authority */
+.statute-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background-color: var(--accent-gold);
 }
 
 .statute-number {
-    font-size: 3.5rem;
-    font-weight: 800;
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem;
+    font-weight: 700;
     line-height: 1;
+    color: var(--accent-gold);
 }
 
-.icon-box {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    background-color: #eff6ff; /* Light blue */
-    color: var(--accent-blue);
-    margin-bottom: 1rem;
-}
-
-/* Sticky Footer Fix */
-main {
-    padding-bottom: 3rem;
-}
-
+/* Footer */
 .footer {
-    background-color: #ffffff;
-    border-top: 1px solid var(--border-color);
-    padding: 2rem 0;
+    background-color: var(--bg-white);
+    border-top: 1px solid var(--border-subtle);
+    padding: 3rem 0;
+    color: var(--text-slate);
+}
+
+/* Animation utility */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up {
+    animation: fadeInUp 0.3s ease forwards;
 }

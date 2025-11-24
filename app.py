@@ -4,6 +4,7 @@ from flask import Flask, render_template
 from flask_login import LoginManager
 from config import Config
 from auth_utils import AnonymousUser, load_user_from_db
+from db import get_db_connection
 import routes.public as public_routes
 import routes.auth as auth_routes
 import routes.admin_system as admin_system
@@ -24,9 +25,31 @@ def from_json_filter(value):
     except (ValueError, TypeError):
         return {}
 
+# --- Context Processor (Global Variables) ---
 @app.context_processor
 def inject_globals():
-    return {'now': datetime.datetime.utcnow()}
+    """
+    Injects global variables into all templates.
+    Fetches the latest statute update date for the global navbar badge.
+    """
+    last_updated = None
+    try:
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT MAX(updated_dt) FROM statutes")
+            result = cursor.fetchone()
+            if result:
+                last_updated = result[0]
+            cursor.close()
+            conn.close()
+    except Exception as e:
+        print(f"Global Injection Error: {e}")
+
+    return {
+        'now': datetime.datetime.utcnow(), 
+        'last_updated': last_updated
+    }
 
 # --- Error Handlers ---
 @app.errorhandler(404)
@@ -36,8 +59,6 @@ def page_not_found(e):
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    # It's good practice to have a generic error page for 500s as well
-    # For now, we can reuse the layout or a simple message
     return render_template('base.html', content="<div class='text-center py-5'><h1>500</h1><p>Internal Server Error. Please try again later.</p></div>"), 500
 
 # --- Auth Setup ---

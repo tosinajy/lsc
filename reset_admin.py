@@ -13,6 +13,7 @@ def reset_admin_password():
 
     # Generate secure hash
     hashed_pw = generate_password_hash(new_password)
+    print(hashed_pw)
 
     try:
         conn = mysql.connector.connect(

@@ -5,108 +5,113 @@
 {% block content %}
 <div class="hero-section text-center">
     <div class="row justify-content-center">
-        <div class="col-lg-8 col-md-10">
-            <h1 class="display-5 fw-bold text-navy mb-3">Is it too late to sue?</h1>
+        <div class="col-lg-9 col-md-11">
+
+            <h1 class="display-4 fw-bold mb-3">Statute of Limitations Verification</h1>
             <p class="lead text-slate mb-5">
-                Instantly check the <strong>Statute of Limitations</strong> for your state. <br>
-                Professional grade data for Attorneys, Adjusters, and Consumers.
+                The authoritative resource for civil deadline calculations.
             </p>
             
-            <div class="card border-0 shadow-lg p-4 p-md-5 text-start bg-white">
-                <div id="formAlert" class="alert alert-danger d-none shadow-sm border-0" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i> <span id="alertMessage"></span>
+            <div class="card border-0 p-4 p-md-5 text-start shadow-diffused">
+                <div id="formAlert" class="alert alert-danger d-none shadow-sm border-0 rounded-0 mb-4" role="alert">
+                    <span id="alertMessage"></span>
                 </div>
 
-                <form id="searchForm" class="row g-4 align-items-end">
-                    <!-- State Selection -->
-                    <div class="col-md-5">
-                        <label for="stateSelect" class="form-label fw-bold text-uppercase small text-slate">1. Select Jurisdiction</label>
-                        <select class="form-select form-select-lg border-2" id="stateSelect" required>
-                            <option value="" selected disabled>Choose State...</option>
-                            {% for state in states %}
-                            <option value="{{ state.slug }}">{{ state.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <!-- Issue Selection -->
-                    <div class="col-md-5">
-                        <label class="form-label fw-bold text-uppercase small text-slate">2. Legal Issue</label>
+                <form id="searchForm">
+                    <div class="row g-4 align-items-end">
+                        <div class="col-md-5">
+                            <label for="stateSelect" class="form-label fw-bold text-uppercase small text-muted ls-1">1. Jurisdiction</label>
+                            <select class="form-select form-select-lg" id="stateSelect" required>
+                                <option value="" selected disabled>Select State...</option>
+                                {% for state in states %}
+                                <option value="{{ state.slug }}">{{ state.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                         
-                        <input type="hidden" id="issueSlug" name="issueSlug" required>
-                        
-                        <div class="dropdown w-100">
-                            <!-- FIX: Changed to form-select class for native arrow, removed manual <i> icon -->
-                            <button class="form-select form-select-lg w-100 text-start border-2" 
-                                    type="button" 
-                                    id="issueDropdownBtn" 
-                                    data-bs-toggle="dropdown" 
-                                    aria-expanded="false">
-                                <span id="issueBtnText">Select State first...</span>
-                            </button>
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold text-uppercase small text-muted ls-1">2. Case Type</label>
                             
-                            <div class="dropdown-menu w-100 p-0 shadow border-0 mt-1" aria-labelledby="issueDropdownBtn">
-                                <div class="p-2 border-bottom bg-light sticky-top">
-                                    <input type="text" id="issueSearchInput" class="form-control form-control-sm" placeholder="Type to filter...">
-                                </div>
+                            <input type="hidden" id="issueSlug" name="issueSlug" required>
+                            
+                            <div class="dropdown w-100">
+                                <button class="form-select form-select-lg w-100 text-start text-truncate" 
+                                        type="button" 
+                                        id="issueDropdownBtn" 
+                                        data-bs-toggle="dropdown" 
+                                        data-bs-auto-close="outside"
+                                        aria-expanded="false">
+                                    <span id="issueBtnText">Select State first...</span>
+                                </button>
                                 
-                                <div id="issueListContainer" style="max-height: 300px; overflow-y: auto;">
-                                    <div class="p-3 text-muted small text-center">Please select a state to view available issues.</div>
+                                <div class="dropdown-menu w-100 p-0 shadow border-0 mt-1" aria-labelledby="issueDropdownBtn">
+                                    <div class="p-2 border-bottom bg-light sticky-top">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                                            <input type="text" id="issueSearchInput" class="form-control border-start-0" placeholder="Type to filter..." autocomplete="off">
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="issueListContainer" style="max-height: 300px; overflow-y: auto;">
+                                        <div class="p-3 text-muted small text-center">Please select a jurisdiction first.</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-md-2">
+                            <button type="button" onclick="performSearch()" class="btn btn-primary w-100 btn-lg">
+                                Check
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Action Button -->
-                    <div class="col-md-2">
-                        <button type="button" onclick="performSearch()" class="btn btn-primary w-100 btn-lg">
-                            <i class="fas fa-search text-white"></i>
-                        </button>
+                    <div id="quickPillsRow" class="row mt-3 d-none">
+                        <div class="col-12">
+                            <div class="d-flex flex-wrap gap-2" id="quickPillsContainer">
+                                </div>
+                        </div>
                     </div>
                 </form>
             </div>
-
-            <!-- Trust Indicators -->
-            <div class="row mt-5 text-center g-4">
-                <div class="col-4">
-                    <div class="text-navy mb-2"><i class="fas fa-database fa-2x"></i></div>
-                    <div class="small fw-bold text-slate text-uppercase">Regular Updates</div>
-                </div>
-                <div class="col-4">
-                    <div class="text-navy mb-2"><i class="fas fa-shield-alt fa-2x"></i></div>
-                    <div class="small fw-bold text-slate text-uppercase">Verified Sources</div>
-                </div>
-                <div class="col-4">
-                    <div class="text-navy mb-2"><i class="fas fa-bolt fa-2x"></i></div>
-                    <div class="small fw-bold text-slate text-uppercase">Instant Results</div>
-                </div>
             </div>
-
-        </div>
     </div>
 </div>
 
 <script>
-    // Existing logic retained from original file
     const stateSelect = document.getElementById('stateSelect');
     const issueDropdownBtn = document.getElementById('issueDropdownBtn');
     const issueBtnText = document.getElementById('issueBtnText');
     const issueListContainer = document.getElementById('issueListContainer');
     const issueSearchInput = document.getElementById('issueSearchInput');
     const issueSlugInput = document.getElementById('issueSlug');
-    
-    // Alert Elements
+    const quickPillsRow = document.getElementById('quickPillsRow');
+    const quickPillsContainer = document.getElementById('quickPillsContainer');
     const formAlert = document.getElementById('formAlert');
     const alertMessage = document.getElementById('alertMessage');
-
+    
     let allIssuesData = []; 
+
+    const PILL_MAPPING = {
+        'Personal Injury (General Negligence)': 'Personal Injury',
+        'Breach of Contract – Written': 'Contract',
+        'Medical Malpractice': 'Medical Malpractice',
+        'Debt Collection': 'Debt',
+        'Business Torts (Fraud, Misrepresentation)': 'Fraud'
+    };
+
+    const dropdownElement = document.getElementById('issueDropdownBtn');
+    dropdownElement.addEventListener('shown.bs.dropdown', function () {
+        issueSearchInput.focus();
+    });
 
     stateSelect.addEventListener('change', function() {
         const stateSlug = this.value;
         hideAlert();
         issueBtnText.textContent = "Loading...";
         issueSlugInput.value = "";
-        issueListContainer.innerHTML = '<div class="p-3 text-muted small text-center"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Loading...</div>';
+        quickPillsRow.classList.add('d-none');
+        issueListContainer.innerHTML = '<div class="p-3 text-muted small text-center">Loading registry...</div>';
         issueSearchInput.value = "";
         
         if (stateSlug) {
@@ -116,19 +121,46 @@
                     allIssuesData = data;
                     if (data.length > 0) {
                         renderDropdownItems(data);
-                        issueBtnText.textContent = "Select Issue...";
-                        // FIX: Removed class manipulation since we use form-select by default now
+                        renderQuickPills(data);
+                        issueBtnText.textContent = "Select Case Type...";
                     } else {
                         issueBtnText.textContent = "No issues found";
-                        issueListContainer.innerHTML = '<div class="p-3 text-muted small text-center">No legal issues found for this state.</div>';
+                        issueListContainer.innerHTML = '<div class="p-3 text-muted small text-center">No data available.</div>';
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    issueBtnText.textContent = "Error loading data";
+                    issueBtnText.textContent = "System Error";
                 });
         }
     });
+
+    function renderQuickPills(items) {
+        quickPillsContainer.innerHTML = '';
+        let count = 0;
+        const availableIssues = {};
+        items.forEach(i => availableIssues[i.name] = i);
+
+        for (const [dbName, displayName] of Object.entries(PILL_MAPPING)) {
+            if (availableIssues[dbName] && count < 5) {
+                const issue = availableIssues[dbName];
+                const pill = document.createElement('button');
+                pill.type = 'button';
+                pill.className = 'btn btn-sm btn-pill-custom fade-in-up';
+                pill.textContent = displayName;
+                // PILL CLICK: Selects issue AND triggers search immediately
+                pill.onclick = () => {
+                    selectIssue(issue);
+                    performSearch();
+                };
+                quickPillsContainer.appendChild(pill);
+                count++;
+            }
+        }
+        if (count > 0) {
+            quickPillsRow.classList.remove('d-none');
+        }
+    }
 
     issueSearchInput.addEventListener('input', function(e) {
         const term = e.target.value.toLowerCase();
@@ -162,10 +194,11 @@
         const sortedGroupKeys = Object.keys(grouped).sort();
 
         sortedGroupKeys.forEach(groupName => {
-            const header = document.createElement('h6');
-            header.className = "dropdown-header fw-bold text-uppercase small mt-2";
+            const header = document.createElement('div');
+            header.className = "dropdown-header fw-bold text-uppercase small mt-2 text-primary opacity-75";
             header.textContent = groupName;
             issueListContainer.appendChild(header);
+            
             grouped[groupName].sort(sortById);
             grouped[groupName].forEach(issue => {
                 issueListContainer.appendChild(createDropdownItem(issue));
@@ -174,8 +207,8 @@
 
         if (ungrouped.length > 0) {
             if (sortedGroupKeys.length > 0) {
-                const header = document.createElement('h6');
-                header.className = "dropdown-header fw-bold text-uppercase small mt-2";
+                const header = document.createElement('div');
+                header.className = "dropdown-header fw-bold text-uppercase small mt-2 text-primary opacity-75";
                 header.textContent = "Other";
                 issueListContainer.appendChild(header);
             }
@@ -186,13 +219,20 @@
     }
 
     function createDropdownItem(issue) {
-        const a = document.createElement('a');
-        a.className = "dropdown-item cursor-pointer py-2";
-        a.href = "#";
+        const a = document.createElement('button');
+        a.type = 'button';
+        a.className = "dropdown-item py-2 text-wrap";
         a.textContent = issue.name;
-        a.onclick = (e) => {
-            e.preventDefault();
+        // DROPDOWN ITEM CLICK: Selects issue AND hides dropdown
+        a.onclick = () => {
             selectIssue(issue);
+            
+            // Programmatically hide the dropdown
+            const dropdownToggle = document.getElementById('issueDropdownBtn');
+            const dropdownInstance = bootstrap.Dropdown.getInstance(dropdownToggle);
+            if (dropdownInstance) {
+                dropdownInstance.hide();
+            }
         };
         return a;
     }
@@ -219,8 +259,8 @@
             window.location.href = `/limitations/${state}/${issue}`;
         } else {
             let msg = "Please select a State and a Legal Issue to continue.";
-            if (!state) msg = "Please select a State first.";
-            else if (!issue) msg = "Please select a Legal Issue.";
+            if (!state) msg = "Please select a Jurisdiction first.";
+            else if (!issue) msg = "Please select a Case Type.";
             showAlert(msg);
         }
     }

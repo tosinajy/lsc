@@ -37,11 +37,14 @@ function checkSmallClaims(stateLimit) {
 // Report Issue AJAX
 function submitReport() {
     const details = document.getElementById('issueDetails').value;
-    const email = document.getElementById('reporterEmail').value;
+    const email = document.getElementById('reporterEmail').value; // Re-added
     const officialSource = document.getElementById('officialSource').value;
     const context = document.getElementById('pageContext').value;
 
-    if(!details) return alert("Please describe the issue.");
+    if(!details || details.trim() === "") {
+        alert("Please describe the issue or correction needed.");
+        return;
+    }
 
     fetch('/report-issue', {
         method: 'POST',
@@ -50,7 +53,7 @@ function submitReport() {
         },
         body: JSON.stringify({ 
             details: details, 
-            email: email, 
+            email: email, // Re-added
             official_source: officialSource,
             url: context 
         }),
@@ -58,11 +61,14 @@ function submitReport() {
     .then(response => response.json())
     .then(data => {
         alert(data.message);
-        // Close modal (using Bootstrap 5 API)
-        const modalEl = document.getElementById('reportModal');
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        modal.hide();
-        document.getElementById('reportForm').reset();
+        
+        if (data.status === 'success') {
+            // Close modal (using Bootstrap 5 API)
+            const modalEl = document.getElementById('reportModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+            document.getElementById('reportForm').reset();
+        }
     })
     .catch((error) => {
         console.error('Error:', error);

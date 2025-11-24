@@ -7,203 +7,387 @@
 {% block meta_desc %}In {{ data.state_name }}, the statute of limitations for {{ data.issue_name }} is {{ data.time_limit_min }} {{ data.duration }}. Details on exceptions and discovery rules.{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8">
-        <!-- Breadcrumb -->
+<div class="row justify-content-center">
+    <div class="col-12 mb-4">
         <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-4 small text-uppercase fw-bold text-muted">
+            <ol class="breadcrumb small text-uppercase fw-bold text-muted" style="background: transparent; padding: 0;">
                 <li class="breadcrumb-item"><a href="/" class="text-decoration-none text-muted">Home</a></li>
                 <li class="breadcrumb-item">{{ data.state_name }}</li>
                 <li class="breadcrumb-item active text-navy">{{ data.issue_name }}</li>
             </ol>
         </nav>
+    </div>
 
-        <h1 class="fw-bold text-navy mb-4">
-            {{ data.state_name }}: {{ data.issue_name }}
-            {% if data.issue_group %}
-            <span class="fs-5 text-muted fw-normal d-block mt-1">{{ data.issue_group }}</span>
-            {% endif %}
-        </h1>
-
-        <!-- PRIMARY ANSWER HERO SECTION: ABOVE THE FOLD -->
-        <div class="statute-hero shadow-sm">
-            <div class="row align-items-center">
-                <div class="col-md-7 border-end border-secondary border-opacity-25">
-                    <p class="text-uppercase small fw-bold mb-1 opacity-75">Statute of Limitations</p>
-                    <div class="statute-number">
-                        {% if data.time_limit_type == 'range' %}
-                            {{ data.time_limit_min }}-{{ data.time_limit_max }} <span class="fs-2">{{ data.duration|title }}</span>
-                        {% else %}
-                            {{ data.time_limit_min }} <span class="fs-2">{{ data.duration|title }}</span>
+    <div class="col-lg-8">
+        
+        <div class="card border-0 shadow-diffused mb-4 overflow-hidden">
+            <div class="card-header bg-navy text-white p-4 border-0" style="background-color: var(--primary-navy);">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="text-gold text-uppercase ls-1 mb-2 small fw-bold">{{ data.state_name }} Law</h6>
+                        <h1 class="display-6 fw-bold mb-0 text-white">{{ data.issue_name }}</h1>
+                        {% if data.issue_group %}
+                        <div class="badge bg-white text-navy mt-3 fw-normal">{{ data.issue_group }}</div>
                         {% endif %}
                     </div>
-                </div>
-                <div class="col-md-5 ps-md-4 pt-3 pt-md-0">
-                    <div class="d-flex align-items-start mb-2">
-                        <i class="fas fa-gavel mt-1 me-2 opacity-75"></i>
-                        <span class="small">{{ data.issue_info }}</span>
+                    <div class="text-end ps-4">
+                        <div class="{{ 'display-5' if data.time_limit_type == 'range' else 'display-4' }} fw-bold text-gold lh-1 text-nowrap">
+                            {% if data.time_limit_type == 'range' %}
+                                {{ data.time_limit_min }}–{{ data.time_limit_max }}
+                            {% else %}
+                                {{ data.time_limit_min }}
+                            {% endif %}
+                        </div>
+                        <div class="text-white opacity-75 text-uppercase small fw-bold">{{ data.duration|title }}</div>
                     </div>
-                    <div class="d-flex align-items-center mt-3">
-                        <span class="badge bg-white text-navy px-3 py-2 fw-bold shadow-sm">
-                            <i class="fas fa-check-circle me-1 text-success"></i> Active Law
-                        </span>
+                </div>
+            </div>
+            <div class="card-body p-4 bg-white">
+                <div class="mb-4">
+                    <h6 class="text-navy fw-bold text-uppercase small mb-2 border-bottom pb-2">Issue Definition</h6>
+                    <p class="text-dark lead fs-6">{{ data.issue_info }}</p>
+                </div>
+                
+                <div class="row g-4">
+                    <div class="col-md-12">
+                        <h6 class="text-navy fw-bold text-uppercase small mb-2 border-bottom pb-2">Statute Details</h6>
+                        <p class="text-muted mb-0">{{ data.details }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- DETAILS GRID -->
-        <div class="row g-4 mb-5">
-            <!-- The Trigger Rule -->
-            <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm p-4">
-                    <div class="icon-box">
-                        <i class="fas fa-hourglass-start text-dark fa-lg"></i>
+        <div class="card border-0 shadow-diffused mb-5" 
+             id="deadlineCalculator"
+             data-min="{{ data.time_limit_min }}"
+             data-max="{{ data.time_limit_max }}"
+             data-type="{{ data.time_limit_type }}"
+             data-duration="{{ data.duration }}">
+            
+            <div class="card-header bg-light border-bottom-0 p-4">
+                <h5 class="fw-bold text-navy mb-0"><i class="fas fa-calculator me-2 text-gold"></i>Deadline Calculator</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row align-items-end g-3">
+                    <div class="col-md-6">
+                        <label for="incidentDate" class="form-label fw-bold text-muted small text-uppercase">When did the incident happen?</label>
+                        <input type="date" class="form-control form-control-lg border-2" id="incidentDate" max="{{ now.strftime('%Y-%m-%d') }}">
                     </div>
-                    <h5 class="fw-bold text-navy">When the Clock Starts</h5>
-                    <p class="text-muted mb-0 small">{{ data.details }}</p>
+                    <div class="col-md-6">
+                        <button onclick="calculateDeadline()" class="btn btn-primary w-100 btn-lg">Calculate Deadline</button>
+                    </div>
+                </div>
+
+                <div id="calcResultContainer" class="d-none mt-4">
+                    <div class="p-4 rounded-3 border" id="calcResultBox">
+                        <h5 id="calcTitle" class="fw-bold mb-2"></h5>
+                        <p id="calcMessage" class="mb-3"></p>
+                        <div id="calcDates" class="fs-5 fw-bold text-dark mb-3 font-monospace"></div>
+                        
+                        <div class="mt-4 mb-2">
+                            <div class="d-flex justify-content-between small text-muted fw-bold mb-1">
+                                <span>Incident</span>
+                                <span>Deadline</span>
+                            </div>
+                            <div class="progress" style="height: 20px; background-color: #e9ecef; border-radius: 10px;">
+                                <div id="calcProgressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted mt-1">
+                                <span id="visualIncidentDate"></span>
+                                <span id="visualDeadlineDate"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start mt-4 pt-3 border-top border-secondary border-opacity-25">
+                            <i class="fas fa-exclamation-circle text-muted me-2 mt-1"></i>
+                            <small class="text-muted fst-italic">
+                                <strong>Important:</strong> Tolling (pausing of time) or exceptions may apply to your specific case. This calculation is a general estimate based on the standard statute. Consult an attorney immediately.
+                            </small>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Exceptions -->
+        </div>
+
+        <div class="row g-4 mb-5">
             <div class="col-md-6">
-                <div class="card h-100 border-0 shadow-sm p-4">
-                    <div class="icon-box" style="background-color: #fef2f2; color: #dc2626;">
-                        <i class="fas fa-exclamation-triangle fa-lg"></i>
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-navy border-bottom pb-2 mb-3">Code Reference</h6>
+                        <p class="font-monospace text-muted mb-0 bg-light p-2 rounded">{{ data.code_reference }}</p>
                     </div>
-                    <h5 class="fw-bold text-navy">Exceptions & Conditions</h5>
-                    {% if data.conditions_exceptions %}
-                        <p class="text-muted mb-0 small">{{ data.conditions_exceptions }}</p>
-                    {% else %}
-                        <p class="text-muted mb-0 small">No specific statutory exceptions listed.</p>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-navy border-bottom pb-2 mb-3">Tolling (Pausing)</h6>
+                        <p class="text-muted mb-0 small">{{ data.tolling or 'No specific tolling data available.' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-navy border-bottom pb-2 mb-3">Exceptions & Conditions</h6>
+                        <p class="text-muted mb-0">{{ data.conditions_exceptions or 'No specific exceptions listed.' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if data.examples %}
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm bg-light">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-navy border-bottom pb-2 mb-3">Example Scenario</h6>
+                        <p class="text-dark fst-italic mb-0">{{ data.examples }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-5 pt-3 border-top">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div class="text-muted small">
+                    <strong>Last Verified:</strong> {{ data.updated_dt.strftime('%B %d, %Y') }}
+                </div>
+                <div class="d-flex gap-2">
+                    {% if data.official_source_url %}
+                    <a href="{{ data.official_source_url }}" target="_blank" rel="nofollow" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-university me-1"></i> Official Source
+                    </a>
+                    {% endif %}
+                    {% if data.other_source_url %}
+                    <a href="{{ data.other_source_url }}" target="_blank" rel="nofollow" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-external-link-alt me-1"></i> Explainer
+                    </a>
                     {% endif %}
                 </div>
             </div>
-        </div>
-
-        <!-- ADDITIONAL CONTEXT -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body p-4">
-                <h5 class="fw-bold text-navy mb-3"><i class="fas fa-pause-circle me-2 text-dark"></i>Tolling (Pausing)</h5>
-                <p class="text-muted mb-4">{{ data.tolling or 'Information on tolling not available for this specific statute.' }}</p>
-                
-                {% if data.examples %}
-                <div class="bg-light p-3 rounded border-start border-4 border-warning">
-                    <h6 class="fw-bold small text-uppercase text-muted mb-2">Example Scenario</h6>
-                    <p class="mb-0 fst-italic text-dark">{{ data.examples }}</p>
-                </div>
-                {% endif %}
+            <div class="text-center mt-4">
+                <a href="#" class="small text-muted text-decoration-none" data-bs-toggle="modal" data-bs-target="#reportModal">
+                    Report Incorrect Data
+                </a>
             </div>
-        </div>
-
-        <hr class="my-5 text-muted">
-        
-        <!-- FOOTER METADATA -->
-        <div class="row text-muted small">
-            <div class="col-md-8">
-                <p class="mb-1"><strong class="text-navy">Code Reference:</strong> {{ data.code_reference }}</p>
-                <p class="mb-0"><strong>Last Verification:</strong> {{ data.updated_dt.strftime('%B %d, %Y') }}</p>
-            </div>
-            <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                {% if data.official_source_url %}
-                    <a href="{{ data.official_source_url }}" target="_blank" rel="nofollow" class="btn btn-sm btn-outline-dark mb-1">
-                        Official Source <i class="fas fa-external-link-alt ms-1"></i>
-                    </a>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="mt-4 text-center">
-            <button class="btn btn-link text-muted btn-sm" data-bs-toggle="modal" data-bs-target="#reportModal">
-                <i class="fas fa-flag"></i> Report Incorrect Data
-            </button>
         </div>
     </div>
 
-    <!-- SIDEBAR -->
     <div class="col-lg-4 mt-4 mt-lg-0">
-        <!-- FIX: Adjusted top value to 6rem to account for navbar height so it doesn't get covered -->
-        <div class="sticky-top" style="top: 6rem; z-index: 10;">
-            <div class="card bg-white shadow-sm border-0">
-                <div class="card-header bg-navy text-white fw-bold py-3" style="background-color: var(--primary-navy);">
-                    <i class="fas fa-balance-scale-right me-2"></i> Small Claims Check
+        <div class="sticky-top" style="top: 6rem; z-index: 1;">
+            <div class="card bg-white border-0 shadow-diffused mb-4">
+                <div class="card-header bg-white border-bottom fw-bold py-3 text-navy">
+                    Small Claims Eligibility
                 </div>
                 <div class="card-body p-4">
-                    <p class="text-slate mb-3">Can you resolve this in {{ data.state_name }} Small Claims court?</p>
-                    
+                    <p class="text-slate small mb-3">Can this be resolved in {{ data.state_name }} Small Claims court?</p>
                     {% if data.small_claims_cap %}
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase">Your Claim Amount</label>
+                        <label class="form-label fw-bold small text-muted text-uppercase">Claim Amount</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light">$</span>
-                            <input type="number" id="claimAmount" class="form-control" placeholder="e.g. 5000">
+                            <span class="input-group-text bg-light border-end-0">$</span>
+                            <input type="number" id="claimAmount" class="form-control border-start-0 ps-1" placeholder="0.00">
                         </div>
                     </div>
-                    <button onclick="checkSmallClaims({{ data.small_claims_cap }})" class="btn btn-dark w-100 mb-3">Check Eligibility</button>
-                    
-                    <div id="calcResult" class="d-none mb-3"></div>
-                    
-                    <!-- Hidden by default, shown via JS after check -->
-                    <div id="smallClaimsInfo" class="bg-light p-3 rounded small d-none">
+                    <button onclick="checkSmallClaims({{ data.small_claims_cap }})" class="btn btn-outline-primary w-100 mb-3">Check Eligibility</button>
+                    <div id="calcResult" class="d-none mb-3 small"></div>
+                    <div id="smallClaimsInfo" class="bg-light p-3 rounded small d-none border">
                         <div class="d-flex justify-content-between mb-1">
-                            <span class="text-muted">Max Limit:</span>
+                            <span class="text-muted">Limit:</span>
                             <span class="fw-bold">${{ "{:,.0f}".format(data.small_claims_cap) }}</span>
                         </div>
                         <div class="border-top my-2"></div>
                         <span class="text-muted fst-italic">{{ data.small_claims_info }}</span>
                     </div>
                     {% else %}
-                    <div class="alert alert-warning small border-0">
-                        Small claims data unavailable for this state.
+                    <div class="alert alert-light border small mb-0">
+                        Small claims data unavailable.
                     </div>
                     {% endif %}
-                </div>
-            </div>
-            
-            <!-- Disclaimer Card -->
-            <div class="card border-0 bg-light mt-4">
-                <div class="card-body p-4">
-                    <h6 class="fw-bold text-slate"><i class="fas fa-shield-alt me-2"></i>Legal Disclaimer</h6>
-                    <p class="small text-muted mb-0">
-                        Statutes of limitations are complex and subject to change. "Discovery rules" and "Tolling" can extend deadlines. Always consult a qualified attorney in {{ data.state_name }} to confirm your specific deadline.
-                    </p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Report Modal -->
 <div class="modal fade" id="reportModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold text-navy">Report Data Issue</h5>
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold text-navy">Submit Correction</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="reportForm">
                     <div class="mb-3">
-                        <label class="form-label fw-bold small">What is incorrect?</label>
-                        <textarea class="form-control" id="issueDetails" rows="3" required></textarea>
+                        <label class="form-label fw-bold small">Correction Details</label>
+                        <textarea class="form-control" id="issueDetails" rows="3" required placeholder="Describe the incorrect information..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold small">Official Source URL (Optional)</label>
+                        <label class="form-label fw-bold small">Source URL (Optional)</label>
                         <input type="url" class="form-control" id="officialSource" placeholder="https://...">
-                        <div class="form-text">Link to the official state code or government site verifying the correction.</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold small">Your Email (optional)</label>
-                        <input type="email" class="form-control" id="reporterEmail">
+                        <label class="form-label fw-bold small">Your Email (Optional)</label>
+                        <input type="email" class="form-control" id="reporterEmail" placeholder="name@example.com">
                     </div>
                     <input type="hidden" id="pageContext" value="/limitations/{{ state_slug }}/{{ issue_slug }}">
                 </form>
             </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="submitReport()">Submit Report</button>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitReport()">Submit</button>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    function getPreciseTimeRemaining(targetDate) {
+        const now = new Date();
+        now.setHours(0,0,0,0);
+        const target = new Date(targetDate);
+        target.setHours(0,0,0,0);
+
+        const diffTime = target - now;
+        
+        if (diffTime < 0) return "Deadline has passed";
+
+        let years = target.getFullYear() - now.getFullYear();
+        let months = target.getMonth() - now.getMonth();
+        let days = target.getDate() - now.getDate();
+
+        if (days < 0) {
+            months--;
+            const prevMonth = new Date(target.getFullYear(), target.getMonth(), 0);
+            days += prevMonth.getDate();
+        }
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        let parts = [];
+        if (years > 0) parts.push(`${years} Year${years !== 1 ? 's' : ''}`);
+        if (months > 0) parts.push(`${months} Month${months !== 1 ? 's' : ''}`);
+        if (days > 0) parts.push(`${days} Day${days !== 1 ? 's' : ''}`);
+
+        if (parts.length === 0) return "Today";
+
+        if (parts.length === 1) return parts[0] + " remaining";
+        const lastPart = parts.pop();
+        return parts.join(", ") + " and " + lastPart + " remaining";
+    }
+
+    function calculateDeadline() {
+        const dateInput = document.getElementById('incidentDate').value;
+        if (!dateInput) {
+            alert("Please select the date of the incident.");
+            return;
+        }
+
+        const calcDiv = document.getElementById('deadlineCalculator');
+        const resultBox = document.getElementById('calcResultContainer');
+        const resultUi = document.getElementById('calcResultBox');
+        const title = document.getElementById('calcTitle');
+        const msg = document.getElementById('calcMessage');
+        const dateDisplay = document.getElementById('calcDates');
+        const progressBar = document.getElementById('calcProgressBar');
+        const visualIncident = document.getElementById('visualIncidentDate');
+        const visualDeadline = document.getElementById('visualDeadlineDate');
+
+        const minTime = parseFloat(calcDiv.getAttribute('data-min'));
+        const maxTime = parseFloat(calcDiv.getAttribute('data-max'));
+        const limitType = calcDiv.getAttribute('data-type');
+        const durationUnit = calcDiv.getAttribute('data-duration').toLowerCase();
+
+        const incidentDate = new Date(dateInput);
+        incidentDate.setHours(12,0,0,0); 
+
+        const addTime = (date, value, unit) => {
+            const newDate = new Date(date);
+            if (unit === 'years') newDate.setFullYear(newDate.getFullYear() + value);
+            else if (unit === 'months') newDate.setMonth(newDate.getMonth() + value);
+            else if (unit === 'days') newDate.setDate(newDate.getDate() + value);
+            return newDate;
+        };
+
+        let deadlineDate;
+        let displayHtml = "";
+        let targetDateForStatus; 
+        let timeString = "";
+
+        if (limitType === 'exact') {
+            deadlineDate = addTime(incidentDate, minTime, durationUnit);
+            targetDateForStatus = deadlineDate;
+            timeString = getPreciseTimeRemaining(deadlineDate);
+            
+            displayHtml = `
+                <div>${deadlineDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            `;
+        } else {
+            const minDeadline = addTime(incidentDate, minTime, durationUnit);
+            const maxDeadline = maxTime ? addTime(incidentDate, maxTime, durationUnit) : minDeadline;
+            
+            const now = new Date();
+            if (now > minDeadline) {
+                targetDateForStatus = maxDeadline;
+                timeString = "Earliest date passed. " + getPreciseTimeRemaining(maxDeadline) + " (Latest)";
+            } else {
+                targetDateForStatus = minDeadline;
+                timeString = getPreciseTimeRemaining(minDeadline) + " (Earliest)";
+            }
+
+            displayHtml = `
+                <div class="d-block small text-muted text-uppercase mb-1">Statutory Range</div>
+                <span class="text-danger fw-bold">Min: ${minDeadline.toLocaleDateString()}</span> 
+                <span class="mx-2 text-muted">|</span> 
+                <span class="text-success fw-bold">Max: ${maxDeadline.toLocaleDateString()}</span>
+            `;
+        }
+
+        const today = new Date();
+        const timeDiff = targetDateForStatus - today;
+        const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
+        
+        const totalDuration = targetDateForStatus - incidentDate;
+        const elapsed = today - incidentDate;
+        let percentage = 0;
+        if (totalDuration > 0) percentage = (elapsed / totalDuration) * 100;
+        percentage = Math.max(0, Math.min(100, percentage));
+
+        resultUi.className = "p-4 rounded-3 border"; 
+        progressBar.className = "progress-bar"; 
+
+        if (daysDiff < 0) {
+            resultUi.classList.add('bg-danger', 'bg-opacity-10', 'border-danger');
+            progressBar.classList.add('bg-danger');
+            title.className = "fw-bold text-danger";
+            title.innerHTML = '<i class="fas fa-times-circle me-2"></i>Statute Likely Expired';
+            msg.textContent = "The calculated deadline has passed. It may be too late to file.";
+            percentage = 100; 
+        } else if (daysDiff <= 90) { 
+            resultUi.classList.add('bg-warning', 'bg-opacity-10', 'border-warning');
+            progressBar.classList.add('bg-warning');
+            title.className = "fw-bold text-dark"; 
+            title.innerHTML = '<i class="fas fa-exclamation-triangle me-2 text-warning"></i>Urgent: Deadline Approaching';
+            msg.textContent = `${timeString}. You should contact an attorney immediately.`;
+        } else {
+            resultUi.classList.add('bg-success', 'bg-opacity-10', 'border-success');
+            progressBar.classList.add('bg-success');
+            title.className = "fw-bold text-success";
+            title.innerHTML = '<i class="fas fa-check-circle me-2"></i>Time to File';
+            msg.textContent = `${timeString}.`;
+        }
+
+        dateDisplay.innerHTML = displayHtml;
+        progressBar.style.width = percentage + "%";
+        visualIncident.textContent = incidentDate.toLocaleDateString();
+        visualDeadline.textContent = targetDateForStatus.toLocaleDateString();
+        
+        resultBox.classList.remove('d-none');
+    }
+</script>
 {% endblock %}

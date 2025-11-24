@@ -20,6 +20,7 @@ def register(app):
         states = cursor.fetchall()
         cursor.close()
         conn.close()
+        # 'last_updated' is now provided via app.context_processor in app.py
         return render_template('home.html', states=states)
 
     @app.route('/api/issues/<state_slug>')
@@ -84,22 +85,24 @@ def register(app):
     def report_issue():
         data = request.json
         details = data.get('details')
-        email = data.get('email')
+        email = data.get('email') # Re-added
         official_source = data.get('official_source')
         page_context = data.get('url')
         
+        # Validation
         if not details:
-            return jsonify({'status': 'error', 'message': 'Details are required.'}), 400
+            return jsonify({'status': 'error', 'message': 'Correction details are required.'}), 400
 
         conn = get_db_connection()
         cursor = conn.cursor()
         try:
+            # Re-added reporter_email to INSERT statement
             cursor.execute("""
-                INSERT INTO issue_reports (details, reporter_email, official_source, page_context, created_at)
-                VALUES (%s, %s, %s, %s, NOW())
+                INSERT INTO issue_reports (details, reporter_email, official_source, page_context, is_valid, created_at)
+                VALUES (%s, %s, %s, %s, NULL, NOW())
             """, (details, email, official_source, page_context))
             conn.commit()
-            return jsonify({'status': 'success', 'message': 'Report submitted successfully. We will review it shortly.'})
+            return jsonify({'status': 'success', 'message': 'Thank you. Your correction has been submitted for review.'})
         except Error as e:
             print(f"Database Error: {e}")
             return jsonify({'status': 'error', 'message': 'Failed to save report.'}), 500
